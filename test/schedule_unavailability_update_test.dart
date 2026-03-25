@@ -64,9 +64,14 @@ void main() {
       }
     }
 
+    final dropBadTime = scheduling.overviewData.getNbrDropTime(targetCourse);
+
     for (var time = 0; time < 20; time++) {
-      expect(scheduling.scheduleControl.getNbrUnavailable(targetCourse, time),
-          expectedUnavailable[time]);
+      final expectedForTime =
+          (time == targetTime) ? dropBadTime : expectedUnavailable[time];
+      expect(
+          scheduling.scheduleControl.getNbrUnavailable(targetCourse, time),
+          expectedForTime);
     }
   });
 }

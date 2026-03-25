@@ -51,6 +51,14 @@ class ScheduleControl {
             }
           }
         }
+
+        // For a scheduled course, treat selected-slot unavailability as the
+        // number of people currently dropped for bad time in that course.
+        var scheduledTime = scheduledTimeFor(course);
+        if (scheduledTime != -1) {
+          _unavailables[course]![scheduledTime] =
+              _scheduling.overviewData.getNbrDropTime(course);
+        }
       }
     }
   }
