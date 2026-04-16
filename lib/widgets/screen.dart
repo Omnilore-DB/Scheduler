@@ -793,6 +793,28 @@ class _ScreenState extends State<Screen> {
                 }
               },
             ),
+            MenuListItem(
+              title: 'Export Unmet Wants',
+              onPressed: () async {
+                try {
+                  if (kIsWeb) {
+                    final content = schedule.outputUnmetWantsToString();
+                    web_dl.triggerDownload(content, 'unmet_wants.txt');
+                  } else {
+                    String? path = await FilePicker.platform.saveFile(
+                        type: FileType.custom, allowedExtensions: ['txt']);
+                    if (path != null && path != '') {
+                      schedule.outputUnmetWants(path);
+                    }
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    Utils.showPopUp(context, 'Error exporting unmet wants',
+                        Utils.getErrorMessage(e));
+                  }
+                }
+              },
+            ),
           ]),
           MenuItem(title: 'View', isActive: true, menuListItems: [
             MenuListItem(title: 'View all'),
