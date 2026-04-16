@@ -512,6 +512,42 @@ class Scheduling {
     return content.toString();
   }
 
+  /// Output unmet wants summary
+  void outputUnmetWants(String path) {
+    _fileStore.writeStringSync(path, outputUnmetWantsToString());
+  }
+
+  /// Build unmet-wants text output
+  String outputUnmetWantsToString() {
+    if (_people.people.isEmpty) return '';
+
+    final summaries = overviewData.getUnmetWantSummaries();
+    final content = StringBuffer();
+    content.writeln('Unmet Wants');
+    content.writeln('Total unmet wants: ${overviewData.getNbrUnmetWants()}');
+    content.writeln('People with unmet wants: ${summaries.length}');
+    content.writeln();
+
+    if (summaries.isEmpty) {
+      content.writeln('None');
+      return content.toString();
+    }
+
+    for (final summary in summaries) {
+      content.writeln(summary.person.getReversedName());
+      content.writeln('Wanted: ${summary.wantedCount}');
+      content.writeln('Given: ${summary.givenCount}');
+      content.writeln('Unmet: ${summary.unmetCount}');
+      content.writeln(summary.assignedCourses.isEmpty
+          ? 'Assigned: none'
+          : 'Assigned: ${summary.assignedCourses.join(", ")}');
+      if (summary != summaries.last) {
+        content.writeln();
+      }
+    }
+    return content.toString();
+  }
+
   /// Get timeslot description for time index
   String getTimeslotDescription(int timeIndex) {
     if (timeIndex < 0 || timeIndex > 19) {

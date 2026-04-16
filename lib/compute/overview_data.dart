@@ -29,6 +29,7 @@ class OverviewData {
   int _nbrGoCourse = 0;
   int _nbrUnmetWants = 0;
   final Set<String> _unmetPeople = {};
+  final Map<String, UnmetWantSummary> _unmetWantSummaries = {};
 
   late final Scheduling _scheduling;
 
@@ -71,6 +72,7 @@ class OverviewData {
     _nbrCourseTakers = 0;
     _nbrRequested = 0;
     _unmetPeople.clear();
+    _unmetWantSummaries.clear();
 
     // Compute people stats
     var peopleData = _people.people.values.toList(growable: false);
@@ -79,6 +81,8 @@ class OverviewData {
     for (var person in peopleData) {
       var hasClass = List<bool>.filled(20, false, growable: false);
       var wanted = person.nbrClassWanted;
+      final wantedCount = wanted;
+      final assignedCourses = <String>[];
       _nbrRequested += wanted;
       if (wanted == 0) {
         _nbrOnLeave += 1;
@@ -91,7 +95,8 @@ class OverviewData {
       }
       // Count first choices
       for (var course in person.firstChoices) {
-        if (_placePersonInCourse(person, course, dropped, true, hasClass) ==
+        if (_placePersonInCourse(
+                person, course, dropped, true, hasClass, assignedCourses) ==
             PlacementResult.success) {
           wanted -= 1;
         }
@@ -99,7 +104,12 @@ class OverviewData {
       // Count add from backup
       for (var i = 0; i < person.backups.length && wanted > 0; i++) {
         if (_placePersonInCourse(
-                person, person.backups[i], dropped, false, hasClass) ==
+                person,
+                person.backups[i],
+                dropped,
+                false,
+                hasClass,
+                assignedCourses) ==
             PlacementResult.success) {
           wanted -= 1;
         }
@@ -107,14 +117,24 @@ class OverviewData {
       // Count unmet wants
       if (wanted > 0) {
         _nbrUnmetWants += wanted;
-        _unmetPeople.add(person.getName());
+        final name = person.getName();
+        _unmetPeople.add(name);
+        assignedCourses.sort((a, b) => a.compareTo(b));
+        _unmetWantSummaries[name] = UnmetWantSummary(
+            person: person,
+            wantedCount: wantedCount,
+            assignedCourses: List<String>.unmodifiable(assignedCourses),
+            unmetCount: wanted);
       }
     }
   }
 
   /// Attempt to place person into the given course and return the result
   PlacementResult _placePersonInCourse(Person person, String course,
-      Set<String> dropped, bool firstChoice, List<bool> hasClass) {
+      Set<String> dropped,
+      bool firstChoice,
+      List<bool> hasClass,
+      List<String> assignedCourses) {
     // Count first choices
     if (firstChoice) {
       _data[course]!.firstChoices.add(person.getName());
@@ -161,6 +181,7 @@ class OverviewData {
     if (time != -1) {
       hasClass[time] = true;
     }
+    assignedCourses.add(course);
     return PlacementResult.success;
   }
 
@@ -325,6 +346,14 @@ class OverviewData {
     return _unmetPeople;
   }
 
+  /// Get per-person unmet wants summaries, sorted alphabetically by name.
+  List<UnmetWantSummary> getUnmetWantSummaries() {
+    final summaries = _unmetWantSummaries.values.toList(growable: false);
+    summaries.sort(
+        (a, b) => a.person.getReversedName().compareTo(b.person.getReversedName()));
+    return summaries;
+  }
+
   /// Helper function that generates ClassSize object from raw integer
   ClassSize _getClassSizeFromRaw(String course, int size) {
     if (size > _scheduling.courseControl.getMaxClassSize(course)) {
@@ -391,4 +420,19 @@ class CourseData {
   Set<String> getResultingClass() {
     return givenFirstChoices.union(givenFromBackup);
   }
+}
+
+class UnmetWantSummary {
+  const UnmetWantSummary(
+      {required this.person,
+      required this.wantedCount,
+      required this.assignedCourses,
+      required this.unmetCount});
+
+  final Person person;
+  final int wantedCount;
+  final List<String> assignedCourses;
+  final int unmetCount;
+
+  int get givenCount => wantedCount - unmetCount;
 }

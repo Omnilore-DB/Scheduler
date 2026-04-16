@@ -3,6 +3,24 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:omnilore_scheduler/scheduling.dart';
 
+Future<Scheduling> _buildSchedulingWithUnmetWants() async {
+  var scheduling = Scheduling();
+  await scheduling.loadCourses('test/resources/course_split.txt');
+  await scheduling.loadPeople('test/resources/people_schedule.txt');
+
+  scheduling.courseControl
+      .setGlobalMinMaxClassSize(0, scheduling.getNumPeople());
+
+  var goCourses = scheduling.courseControl.getGo().toList(growable: false)
+    ..sort((a, b) => a.compareTo(b));
+  scheduling.scheduleControl.setNbrClassrooms(goCourses.length);
+  for (var course in goCourses) {
+    scheduling.scheduleControl.schedule(course, 0);
+  }
+
+  return scheduling;
+}
+
 /// This file tests functionalities regarding loading courses.
 void main() {
   test('Export: empty', () {
@@ -58,5 +76,40 @@ void main() {
         File('test/resources/gold/empty_state.txt').readAsStringSync();
     expect(actual, expected);
     File('test_output_state.txt').deleteSync();
+  });
+
+  test('outputUnmetWantsToString exports current unmet wants summary',
+      () async {
+    var scheduling = await _buildSchedulingWithUnmetWants();
+
+    final summaries = scheduling.overviewData.getUnmetWantSummaries();
+    expect(summaries, isNotEmpty);
+
+    final firstSummary = summaries.first;
+    final assignedCourses = firstSummary.assignedCourses.isEmpty
+        ? 'none'
+        : firstSummary.assignedCourses.join(', ');
+    final actual = scheduling.outputUnmetWantsToString();
+
+    expect(actual, contains('Unmet Wants'));
+    expect(actual,
+        contains('Total unmet wants: ${scheduling.overviewData.getNbrUnmetWants()}'));
+    expect(actual, contains('People with unmet wants: ${summaries.length}'));
+    expect(actual, contains(firstSummary.person.getReversedName()));
+    expect(actual, contains('Wanted: ${firstSummary.wantedCount}'));
+    expect(actual, contains('Given: ${firstSummary.givenCount}'));
+    expect(actual, contains('Unmet: ${firstSummary.unmetCount}'));
+    expect(actual, contains('Assigned: $assignedCourses'));
+  });
+
+  test('outputUnmetWants writes text file using export format', () async {
+    var scheduling = await _buildSchedulingWithUnmetWants();
+
+    scheduling.outputUnmetWants('test_output_unmet_wants.txt');
+    var actual = File('test_output_unmet_wants.txt').readAsStringSync();
+
+    expect(actual, scheduling.outputUnmetWantsToString());
+    expect(actual, contains('Unmet Wants'));
+    File('test_output_unmet_wants.txt').deleteSync();
   });
 }
