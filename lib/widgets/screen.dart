@@ -22,6 +22,7 @@ import 'package:omnilore_scheduler/widgets/utils.dart';
 
 import 'package:omnilore_scheduler/io/web_download_factory.dart' as web_dl;
 import 'package:omnilore_scheduler/io/autosave_store_factory.dart' as autosave;
+import 'package:omnilore_scheduler/io/export_text_file.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -55,7 +56,7 @@ class _ScreenState extends State<Screen> {
   List<List<String>> curClusters = [];
   List<bool> droppedList = List<bool>.filled(14, false, growable: true);
   List<int> scheduleData = List<int>.filled(14, -1, growable: false);
-  
+
   // Coordinator selection mode: 'none', 'main', or 'equal'
   String coordinatorMode = 'none';
 
@@ -134,10 +135,10 @@ class _ScreenState extends State<Screen> {
   /// Show split preview for the current class
   void _showSplitPreview() {
     if (currentClass == null || currentRow != RowType.resultingClass) return;
-    
+
     var splitResult = schedule.splitControl.getSplitResult(currentClass!);
     if (splitResult.isEmpty) return;
-    
+
     setState(() {
       tempSplitResult = {};
       for (int i = 0; i < splitResult.length; i++) {
@@ -733,16 +734,20 @@ class _ScreenState extends State<Screen> {
                 title: 'Export Early Roster',
                 onPressed: () async {
                   try {
-                    if (kIsWeb) {
-                      final content = schedule.outputRosterPhoneToString();
-                      web_dl.triggerDownload(content, 'early_roster.txt');
-                    } else {
-                      String? path = await FilePicker.platform.saveFile(
-                          type: FileType.custom, allowedExtensions: ['txt']);
-                      if (path != null && path != '') {
-                        schedule.outputRosterPhone(path);
-                      }
-                    }
+                    final content = schedule.outputRosterPhoneToString();
+                    await exportTextFile(
+                      isWeb: kIsWeb,
+                      content: content,
+                      suggestedName: 'early_roster.txt',
+                      allowCustomNameOnWeb: true,
+                      saveAs: web_dl.triggerSaveAs,
+                      download: web_dl.triggerDownload,
+                      pickSavePath: () => FilePicker.platform.saveFile(
+                        type: FileType.custom,
+                        allowedExtensions: ['txt'],
+                      ),
+                      writeToPath: schedule.exportText,
+                    );
                   } catch (e) {
                     if (context.mounted) {
                       Utils.showPopUp(context, 'Error exporting early roster',
@@ -754,16 +759,20 @@ class _ScreenState extends State<Screen> {
                 title: 'Export Final Roster',
                 onPressed: () async {
                   try {
-                    if (kIsWeb) {
-                      final content = schedule.outputRosterCCToString();
-                      web_dl.triggerDownload(content, 'final_roster.txt');
-                    } else {
-                      String? path = await FilePicker.platform.saveFile(
-                          type: FileType.custom, allowedExtensions: ['txt']);
-                      if (path != null && path.isNotEmpty) {
-                        schedule.outputRosterCC(path);
-                      }
-                    }
+                    final content = schedule.outputRosterCCToString();
+                    await exportTextFile(
+                      isWeb: kIsWeb,
+                      content: content,
+                      suggestedName: 'final_roster.txt',
+                      allowCustomNameOnWeb: true,
+                      saveAs: web_dl.triggerSaveAs,
+                      download: web_dl.triggerDownload,
+                      pickSavePath: () => FilePicker.platform.saveFile(
+                        type: FileType.custom,
+                        allowedExtensions: ['txt'],
+                      ),
+                      writeToPath: schedule.exportText,
+                    );
                   } catch (e) {
                     if (context.mounted) {
                       Utils.showPopUp(context, 'Error exporting roster with CC',
