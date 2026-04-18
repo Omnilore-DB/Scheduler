@@ -784,16 +784,20 @@ class _ScreenState extends State<Screen> {
               title: 'Export MailMerge',
               onPressed: () async {
                 try {
-                  if (kIsWeb) {
-                    final content = schedule.outputMMToString();
-                    web_dl.triggerDownload(content, 'mail_merge.txt');
-                  } else {
-                    String? path = await FilePicker.platform.saveFile(
-                        type: FileType.custom, allowedExtensions: ['txt']);
-                    if (path != null && path != '') {
-                      schedule.outputMM(path);
-                    }
-                  }
+                  final content = schedule.outputMMToString();
+                  await exportTextFile(
+                    isWeb: kIsWeb,
+                    content: content,
+                    suggestedName: 'mail_merge.txt',
+                    allowCustomNameOnWeb: true,
+                    saveAs: web_dl.triggerSaveAs,
+                    download: web_dl.triggerDownload,
+                    pickSavePath: () => FilePicker.platform.saveFile(
+                      type: FileType.custom,
+                      allowedExtensions: ['txt'],
+                    ),
+                    writeToPath: schedule.exportText,
+                  );
                 } catch (e) {
                   if (context.mounted) {
                     Utils.showPopUp(context, 'Error exporting MailMerge',
@@ -806,16 +810,20 @@ class _ScreenState extends State<Screen> {
               title: 'Export Unmet Wants',
               onPressed: () async {
                 try {
-                  if (kIsWeb) {
-                    final content = schedule.outputUnmetWantsToString();
-                    web_dl.triggerDownload(content, 'unmet_wants.txt');
-                  } else {
-                    String? path = await FilePicker.platform.saveFile(
-                        type: FileType.custom, allowedExtensions: ['txt']);
-                    if (path != null && path != '') {
-                      schedule.outputUnmetWants(path);
-                    }
-                  }
+                  final content = schedule.outputUnmetWantsToString();
+                  await exportTextFile(
+                    isWeb: kIsWeb,
+                    content: content,
+                    suggestedName: 'unmet_wants.txt',
+                    allowCustomNameOnWeb: true,
+                    saveAs: web_dl.triggerSaveAs,
+                    download: web_dl.triggerDownload,
+                    pickSavePath: () => FilePicker.platform.saveFile(
+                      type: FileType.custom,
+                      allowedExtensions: ['txt'],
+                    ),
+                    writeToPath: schedule.exportText,
+                  );
                 } catch (e) {
                   if (context.mounted) {
                     Utils.showPopUp(context, 'Error exporting unmet wants',

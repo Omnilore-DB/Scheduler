@@ -25,6 +25,52 @@ void main() {
     expect(downloadCalls, isEmpty);
   });
 
+  test('web mail merge export uses save as flow', () async {
+    var saveAsCalls = <String>[];
+    var downloadCalls = 0;
+
+    await exportTextFile(
+      isWeb: true,
+      content: 'mail-merge-content',
+      suggestedName: 'mail_merge.txt',
+      allowCustomNameOnWeb: true,
+      saveAs: (content, suggestedName) async {
+        saveAsCalls.add('$suggestedName::$content');
+      },
+      download: (_, __) {
+        downloadCalls++;
+      },
+      pickSavePath: () async => 'ignored.txt',
+      writeToPath: (_, __) {},
+    );
+
+    expect(saveAsCalls, ['mail_merge.txt::mail-merge-content']);
+    expect(downloadCalls, 0);
+  });
+
+  test('web unmet wants export uses save as flow', () async {
+    var saveAsCalls = <String>[];
+    var downloadCalls = 0;
+
+    await exportTextFile(
+      isWeb: true,
+      content: 'unmet-wants-content',
+      suggestedName: 'unmet_wants.txt',
+      allowCustomNameOnWeb: true,
+      saveAs: (content, suggestedName) async {
+        saveAsCalls.add('$suggestedName::$content');
+      },
+      download: (_, __) {
+        downloadCalls++;
+      },
+      pickSavePath: () async => 'ignored.txt',
+      writeToPath: (_, __) {},
+    );
+
+    expect(saveAsCalls, ['unmet_wants.txt::unmet-wants-content']);
+    expect(downloadCalls, 0);
+  });
+
   test('web export without custom naming uses browser download', () async {
     var saveAsCalls = 0;
     var downloadCalls = <String>[];
