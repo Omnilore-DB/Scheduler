@@ -1028,6 +1028,10 @@ class _ScreenState extends State<Screen> {
                         });
                       },
                       onCancelSplitPreview: _cancelSplitPreview,
+                      onCoordinatorAssignmentsChanged: () {
+                        setState(() {});
+                        _scheduleAutosave();
+                      },
                       coordinatorMode: coordinatorMode),
                 )
               ],

@@ -29,6 +29,7 @@ class ClassNameDisplay extends StatefulWidget {
       this.onMovePerson,
       this.onSelectSplitGroup,
       this.onCancelSplitPreview,
+      this.onCoordinatorAssignmentsChanged,
       this.coordinatorMode = 'none'})
       : super(key: key);
 
@@ -42,6 +43,7 @@ class ClassNameDisplay extends StatefulWidget {
   final void Function(String person, int fromGroup, int toGroup)? onMovePerson;
   final void Function(int groupNum)? onSelectSplitGroup;
   final void Function()? onCancelSplitPreview;
+  final VoidCallback? onCoordinatorAssignmentsChanged;
   final String coordinatorMode; // 'none', 'main', or 'equal'
 
   @override
@@ -168,6 +170,7 @@ class ClassNameDisplayState extends State<ClassNameDisplay> {
     setState(() {
       clearCoordinatorSelections();
     });
+    widget.onCoordinatorAssignmentsChanged?.call();
   }
 
   /// Set the selected CC1 and CC2
@@ -192,6 +195,7 @@ class ClassNameDisplayState extends State<ClassNameDisplay> {
     setState(() {
       clearCoordinatorSelections();
     });
+    widget.onCoordinatorAssignmentsChanged?.call();
   }
 
   @override
@@ -276,11 +280,13 @@ class ClassNameDisplayState extends State<ClassNameDisplay> {
               )
           ],
         ),
-        Wrap(
-          direction: Axis.horizontal,
-          children: [
-            for (int i = 0; i < widget.people.length; i++)
-              ElevatedButton(
+        Expanded(
+          child: SingleChildScrollView(
+            child: Wrap(
+              direction: Axis.horizontal,
+              children: [
+                for (int i = 0; i < widget.people.length; i++)
+                  ElevatedButton(
                   style: (() {
                     String person = widget.people[i];
                     // Coordinator mode colors
@@ -353,6 +359,7 @@ class ClassNameDisplayState extends State<ClassNameDisplay> {
                                     person == coords.coordinators[1])) {
                               widget.schedule.courseControl
                                   .clearCoordinators(widget.currentClass!);
+                              widget.onCoordinatorAssignmentsChanged?.call();
                               setState(() {
                                 clearCoordinatorSelections();
                                 _showingCoordinators = false;
@@ -398,7 +405,9 @@ class ClassNameDisplayState extends State<ClassNameDisplay> {
                       }
                     }()),
                   ))
-          ],
+              ],
+            ),
+          ),
         ),
         Container(
           color: Colors.white,
