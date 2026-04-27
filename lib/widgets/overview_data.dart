@@ -26,22 +26,64 @@ class OverviewData extends StatelessWidget {
     return Container(
       color: themeColors['LightBlue'],
       constraints: const BoxConstraints.expand(),
-      child: DefaultTextStyle(
-        style: const TextStyle(fontSize: 20, color: Colors.black),
-        child: Column(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _statRow('Course Takers', courseTakers),
+          _statRow('Go Courses', goCourses),
+          _statRow('Places Asked', placesAsked),
+          _statRow('Places Given', placesGiven),
+          _unmetWantsRow(context),
+          _statRow('On Leave', onLeave),
+          _statRow('Missing', 0),
+        ],
+      ),
+    );
+  }
+
+  Widget _statRow(String label, int value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label,
+              style: const TextStyle(fontSize: 13, color: Colors.black87)),
+          Text('$value',
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black)),
+        ],
+      ),
+    );
+  }
+
+  Widget _unmetWantsRow(BuildContext context) {
+    return InkWell(
+      onTap: onUnmetWantsClicked,
+      mouseCursor: SystemMouseCursors.click,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Course Takers $courseTakers'),
-            Text('Go Courses $goCourses'),
-            Text('Places Asked $placesAsked'),
-            Text('Places Given $placesGiven'),
-            TextButton(
-                onPressed: onUnmetWantsClicked,
-                child: Text(
-                  'Un-met Wants $unmetWants',
-                  style: const TextStyle(fontSize: 20, color: Colors.black),
-                )),
-            Text('On Leave $onLeave'),
-            const Text('Missing 0'),
+            const Text(
+              'Unmet Wants',
+              style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline),
+            ),
+            Text(
+              '$unmetWants',
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue),
+            ),
           ],
         ),
       ),

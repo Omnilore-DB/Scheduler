@@ -260,8 +260,6 @@ class ClassNameDisplayState extends State<ClassNameDisplay> {
                       }
                     : null,
                 child: const Text('Inc Clust')),
-            const ElevatedButton(onPressed: null, child: Text('Back')),
-            const ElevatedButton(onPressed: null, child: Text('Forward')),
           ],
         ),
         Row(
