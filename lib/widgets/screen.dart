@@ -13,7 +13,6 @@ import 'package:omnilore_scheduler/theme.dart';
 import 'package:omnilore_scheduler/widgets/class_name_display.dart';
 import 'package:omnilore_scheduler/widgets/class_size_control.dart';
 import 'package:omnilore_scheduler/widgets/names_display_mode.dart';
-import 'package:omnilore_scheduler/widgets/select_process.dart';
 import 'package:omnilore_scheduler/widgets/table/main_table.dart';
 import 'package:omnilore_scheduler/widgets/overview_data.dart';
 import 'package:omnilore_scheduler/widgets/table/overview_row.dart';
@@ -23,6 +22,7 @@ import 'package:omnilore_scheduler/widgets/utils.dart';
 import 'package:omnilore_scheduler/io/web_download_factory.dart' as web_dl;
 import 'package:omnilore_scheduler/io/autosave_store_factory.dart' as autosave;
 import 'package:omnilore_scheduler/io/bundled_state.dart';
+import 'package:omnilore_scheduler/io/default_filename.dart';
 import 'package:omnilore_scheduler/io/export_text_file.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -632,14 +632,16 @@ class _ScreenState extends State<Screen> {
                 try {
                   final stateContent = schedule.exportStateToString();
                   final bundledContent = _buildBundledSaveContent();
+                  final filename = defaultExportFilename('scheduling_state');
                   if (kIsWeb) {
                     await _withLoadingDialog('Saving...', () async {
-                      web_dl.triggerDownload(
-                          bundledContent, 'scheduling_state.txt');
+                      web_dl.triggerDownload(bundledContent, filename);
                     });
                   } else {
                     String? path = await FilePicker.platform.saveFile(
-                        type: FileType.custom, allowedExtensions: ['txt']);
+                        type: FileType.custom,
+                        allowedExtensions: ['txt'],
+                        fileName: filename);
                     if (path != null && path != '') {
                       schedule.exportText(path, bundledContent);
                     }
@@ -661,14 +663,16 @@ class _ScreenState extends State<Screen> {
                 try {
                   final stateContent = schedule.exportStateToString();
                   final content = _buildBundledSaveContent();
+                  final filename = defaultExportFilename('scheduling_state');
                   if (kIsWeb) {
                     await _withLoadingDialog('Saving...', () async {
-                      await web_dl.triggerSaveAs(
-                          content, 'scheduling_state.txt');
+                      await web_dl.triggerSaveAs(content, filename);
                     });
                   } else {
                     String? path = await FilePicker.platform.saveFile(
-                        type: FileType.custom, allowedExtensions: ['txt']);
+                        type: FileType.custom,
+                        allowedExtensions: ['txt'],
+                        fileName: filename);
                     if (path != null && path != '') {
                       schedule.exportText(path, content);
                     }
@@ -717,16 +721,18 @@ class _ScreenState extends State<Screen> {
                 onPressed: () async {
                   try {
                     final content = schedule.outputRosterPhoneToString();
+                    final filename = defaultExportFilename('early_roster');
                     await exportTextFile(
                       isWeb: kIsWeb,
                       content: content,
-                      suggestedName: 'early_roster.txt',
+                      suggestedName: filename,
                       allowCustomNameOnWeb: true,
                       saveAs: web_dl.triggerSaveAs,
                       download: web_dl.triggerDownload,
                       pickSavePath: () => FilePicker.platform.saveFile(
                         type: FileType.custom,
                         allowedExtensions: ['txt'],
+                        fileName: filename,
                       ),
                       writeToPath: schedule.exportText,
                     );
@@ -742,16 +748,18 @@ class _ScreenState extends State<Screen> {
                 onPressed: () async {
                   try {
                     final content = schedule.outputRosterCCToString();
+                    final filename = defaultExportFilename('final_roster');
                     await exportTextFile(
                       isWeb: kIsWeb,
                       content: content,
-                      suggestedName: 'final_roster.txt',
+                      suggestedName: filename,
                       allowCustomNameOnWeb: true,
                       saveAs: web_dl.triggerSaveAs,
                       download: web_dl.triggerDownload,
                       pickSavePath: () => FilePicker.platform.saveFile(
                         type: FileType.custom,
                         allowedExtensions: ['txt'],
+                        fileName: filename,
                       ),
                       writeToPath: schedule.exportText,
                     );
@@ -767,16 +775,18 @@ class _ScreenState extends State<Screen> {
               onPressed: () async {
                 try {
                   final content = schedule.outputMMToString();
+                  final filename = defaultExportFilename('mail_merge');
                   await exportTextFile(
                     isWeb: kIsWeb,
                     content: content,
-                    suggestedName: 'mail_merge.txt',
+                    suggestedName: filename,
                     allowCustomNameOnWeb: true,
                     saveAs: web_dl.triggerSaveAs,
                     download: web_dl.triggerDownload,
                     pickSavePath: () => FilePicker.platform.saveFile(
                       type: FileType.custom,
                       allowedExtensions: ['txt'],
+                      fileName: filename,
                     ),
                     writeToPath: schedule.exportText,
                   );
@@ -793,16 +803,18 @@ class _ScreenState extends State<Screen> {
               onPressed: () async {
                 try {
                   final content = schedule.outputUnmetWantsToString();
+                  final filename = defaultExportFilename('unmet_wants');
                   await exportTextFile(
                     isWeb: kIsWeb,
                     content: content,
-                    suggestedName: 'unmet_wants.txt',
+                    suggestedName: filename,
                     allowCustomNameOnWeb: true,
                     saveAs: web_dl.triggerSaveAs,
                     download: web_dl.triggerDownload,
                     pickSavePath: () => FilePicker.platform.saveFile(
                       type: FileType.custom,
                       allowedExtensions: ['txt'],
+                      fileName: filename,
                     ),
                     writeToPath: schedule.exportText,
                   );
@@ -1110,30 +1122,23 @@ class _ScreenState extends State<Screen> {
               ],
             ),
           ),
-          //Select process and Aux data
           SizedBox(
             width: MediaQuery.of(context).size.width / 4 - 5,
-            child: Column(
-              children: [
-                const SelectProcess(),
-                Expanded(
-                    child: OverviewData(
-                        placesAsked: placesAsked,
-                        placesGiven: placesGiven,
-                        goCourses: goCourses,
-                        unmetWants: unmetWants,
-                        onLeave: onLeave,
-                        courseTakers: courseTakers,
-                        onUnmetWantsClicked: () {
-                          setState(() {
-                            curClassRoster = schedule.overviewData
-                                .getPeopleUnmetWants()
-                                .toList();
-                            currentRow = RowType.unmetWants;
-                          });
-                        })),
-              ],
-            ),
+            child: OverviewData(
+                placesAsked: placesAsked,
+                placesGiven: placesGiven,
+                goCourses: goCourses,
+                unmetWants: unmetWants,
+                onLeave: onLeave,
+                courseTakers: courseTakers,
+                onUnmetWantsClicked: () {
+                  setState(() {
+                    curClassRoster = schedule.overviewData
+                        .getPeopleUnmetWants()
+                        .toList();
+                    currentRow = RowType.unmetWants;
+                  });
+                }),
           )
         ],
       ),

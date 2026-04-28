@@ -80,12 +80,14 @@ void main() {
     expect(tapped, 1);
   });
 
-  testWidgets('stats panel uses compact font size (13)', (WidgetTester tester) async {
+  testWidgets('stats panel uses readable font sizes',
+      (WidgetTester tester) async {
     await tester.pumpWidget(buildWidget());
     final textWidgets = tester.widgetList<Text>(find.byType(Text));
     for (final t in textWidgets) {
-      if (t.style?.fontSize != null) {
-        expect(t.style!.fontSize, lessThanOrEqualTo(13));
+      final size = t.style?.fontSize;
+      if (size != null) {
+        expect(size, greaterThanOrEqualTo(16));
       }
     }
   });
