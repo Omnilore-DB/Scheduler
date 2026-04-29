@@ -13,7 +13,6 @@ import 'package:omnilore_scheduler/theme.dart';
 import 'package:omnilore_scheduler/widgets/class_name_display.dart';
 import 'package:omnilore_scheduler/widgets/class_size_control.dart';
 import 'package:omnilore_scheduler/widgets/names_display_mode.dart';
-import 'package:omnilore_scheduler/widgets/select_process.dart';
 import 'package:omnilore_scheduler/widgets/table/main_table.dart';
 import 'package:omnilore_scheduler/widgets/overview_data.dart';
 import 'package:omnilore_scheduler/widgets/table/overview_row.dart';
@@ -22,6 +21,8 @@ import 'package:omnilore_scheduler/widgets/utils.dart';
 
 import 'package:omnilore_scheduler/io/web_download_factory.dart' as web_dl;
 import 'package:omnilore_scheduler/io/autosave_store_factory.dart' as autosave;
+import 'package:omnilore_scheduler/io/bundled_state.dart';
+import 'package:omnilore_scheduler/io/default_filename.dart';
 import 'package:omnilore_scheduler/io/export_text_file.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -129,7 +130,7 @@ class _ScreenState extends State<Screen> {
     var content = schedule.exportStateToString();
     if (content == _lastAutoSavedContent) return;
     _lastAutoSavedContent = content;
-    autosave.saveAutosave(content);
+    autosave.saveAutosave(_buildBundledSaveContent());
   }
 
   /// Show split preview for the current class
@@ -154,7 +155,7 @@ class _ScreenState extends State<Screen> {
 
   /// Update curClassRoster to show the selected split group during preview
   void _updateSplitPreviewRoster() {
-    if (currentSplitGroupSelected != null && 
+    if (currentSplitGroupSelected != null &&
         tempSplitResult.containsKey(currentSplitGroupSelected)) {
       curClassRoster = tempSplitResult[currentSplitGroupSelected]!.toList();
       curClassRoster.sort();
@@ -181,8 +182,10 @@ class _ScreenState extends State<Screen> {
   void _implementSplit() {
     if (splitCourseInProgress == null) return;
 
-    int minSize = schedule.courseControl.getMinClassSize(splitCourseInProgress!);
-    int maxSize = schedule.courseControl.getMaxClassSize(splitCourseInProgress!);
+    int minSize =
+        schedule.courseControl.getMinClassSize(splitCourseInProgress!);
+    int maxSize =
+        schedule.courseControl.getMaxClassSize(splitCourseInProgress!);
     for (var group in tempSplitResult.values) {
       if (group.length < minSize || group.length > maxSize) {
         Utils.showPopUp(context, 'Invalid split',
@@ -196,11 +199,8 @@ class _ScreenState extends State<Screen> {
       schedule.splitControl.applySplit(splitCourseInProgress!, tempSplitResult);
 
       var newCourses = schedule.getCourseCodes();
-      droppedList.insertAll(
-          courses.indexOf(splitCourseInProgress!),
-          List<bool>.filled(
-              newCourses.length - courses.length,
-              false));
+      droppedList.insertAll(courses.indexOf(splitCourseInProgress!),
+          List<bool>.filled(newCourses.length - courses.length, false));
 
       // Reset split preview state
       isShowingSplitPreview = false;
@@ -248,8 +248,7 @@ class _ScreenState extends State<Screen> {
       _showTwoOptionRestoreDialog(savedAutosave, savedHardSave);
     } else {
       var content = savedAutosave ?? savedHardSave!;
-      var label =
-          savedAutosave != null ? 'autosave' : 'last save';
+      var label = savedAutosave != null ? 'autosave' : 'last save';
       _showSingleOptionRestoreDialog(content, label);
     }
   }
@@ -258,17 +257,16 @@ class _ScreenState extends State<Screen> {
     var timestamp = label == 'autosave'
         ? autosave.getAutosaveTimestamp()
         : autosave.getHardSaveTimestamp();
-    var timeDisplay = timestamp != null
-        ? ' from ${_formatTimestamp(timestamp)}'
-        : '';
+    var timeDisplay =
+        timestamp != null ? ' from ${_formatTimestamp(timestamp)}' : '';
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         title: const Text('Previous Session Found'),
-        content: Text(
-            'Found $label$timeDisplay. Would you like to restore it?'),
+        content:
+            Text('Found $label$timeDisplay. Would you like to restore it?'),
         actions: [
           TextButton(
             onPressed: () {
@@ -341,8 +339,7 @@ class _ScreenState extends State<Screen> {
 
   /// Shows a loading dialog with [message] while [work] executes, then
   /// dismisses it. The dialog is non-dismissible so the user can't tap away.
-    Future<void> _withLoadingDialog(
-      String message, Future<void> Function() work,
+  Future<void> _withLoadingDialog(String message, Future<void> Function() work,
       {bool showSpinner = true}) async {
     showDialog(
       context: context,
@@ -425,67 +422,48 @@ class _ScreenState extends State<Screen> {
     }
   }
 
-  /// Builds a save file that embeds raw course and people data before the
-  /// state section, making it a self-contained file.
   String _buildBundledSaveContent() {
     final state = schedule.exportStateToString();
     final courseData = _courseSourceData ?? autosave.loadCourseData();
     final peopleData = _peopleSourceData ?? autosave.loadPeopleData();
-    if (courseData == null || peopleData == null) return state;
-    return 'CourseFile:\n${courseData}PeopleFile:\n$peopleData$state';
+    return buildBundledStateContent(
+        stateContent: state, courseData: courseData, peopleData: peopleData);
   }
 
-  /// Loads a save file that may contain embedded CourseFile/PeopleFile
-  /// sections. If present, reinitializes and reimports courses and people
-  /// from the embedded data before loading state.
   Future<void> _loadBundledState(List<int> bytes) async {
     final text = utf8.decode(bytes);
-    final lines = const LineSplitter().convert(text);
+    final parsed = parseBundledStateContent(text);
 
-    if (lines.isNotEmpty && lines[0].trim() == 'CourseFile:') {
-      final courseLines = <String>[];
-      int i = 1;
-      while (i < lines.length && lines[i].trim() != 'PeopleFile:') {
-        courseLines.add(lines[i]);
-        i++;
-      }
-      final courseText = '${courseLines.join('\n')}\n';
-
-      final peopleLines = <String>[];
-      i++; // skip 'PeopleFile:'
-      while (i < lines.length && lines[i].trim() != 'Setting:') {
-        peopleLines.add(lines[i]);
-        i++;
-      }
-      final peopleText = '${peopleLines.join('\n')}\n';
-
+    if (parsed.hasEmbeddedSourceData) {
+      final courseText = parsed.courseData!;
+      final peopleText = parsed.peopleData!;
       setState(() {
         schedule = Scheduling();
       });
       await schedule.loadCoursesFromBytes(utf8.encode(courseText));
       _courseSourceData = courseText;
       autosave.saveCourseData(courseText);
-      await Future.delayed(Duration.zero); // yield for UI
+      await Future.delayed(Duration.zero);
       await schedule.loadPeopleFromBytes(utf8.encode(peopleText));
       _peopleSourceData = peopleText;
       autosave.savePeopleData(peopleText);
-      await Future.delayed(Duration.zero); // yield for UI
+      await Future.delayed(Duration.zero);
     }
 
-    schedule.loadStateFromBytes(bytes);
+    schedule.loadStateFromBytes(utf8.encode(parsed.stateContent));
     final loadedCourses = schedule.getCourseCodes().toList();
     final loadedNumCourses = loadedCourses.length;
     final dropped = schedule.courseControl.getDropped();
     final loadedDropped = List<bool>.generate(
         loadedNumCourses, (i) => dropped.contains(loadedCourses[i]));
-    final loadedContent = schedule.exportStateToString();
+    final loadedContent = _buildBundledSaveContent();
     autosave.saveHardSave(loadedContent);
     autosave.clearAutosave();
     setState(() {
       numCourses = loadedNumCourses;
       numPeople = schedule.getNumPeople();
       droppedList = loadedDropped;
-      _lastAutoSavedContent = loadedContent;
+      _lastAutoSavedContent = schedule.exportStateToString();
     });
     compute(Change.course);
   }
@@ -597,8 +575,8 @@ class _ScreenState extends State<Screen> {
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      Utils.showPopUp(
-                          context, 'Error loading courses', Utils.getErrorMessage(e));
+                      Utils.showPopUp(context, 'Error loading courses',
+                          Utils.getErrorMessage(e));
                     }
                   }
                 }
@@ -620,8 +598,7 @@ class _ScreenState extends State<Screen> {
                     // On web, use bytes; on native platforms, use path
                     if (result.files.single.bytes != null) {
                       final bytes = result.files.single.bytes!;
-                      newNumPeople =
-                          await schedule.loadPeopleFromBytes(bytes);
+                      newNumPeople = await schedule.loadPeopleFromBytes(bytes);
                       _peopleSourceData = utf8.decode(bytes);
                       autosave.savePeopleData(_peopleSourceData!);
                     } else {
@@ -637,8 +614,8 @@ class _ScreenState extends State<Screen> {
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      Utils.showPopUp(
-                          context, 'Error loading people', Utils.getErrorMessage(e));
+                      Utils.showPopUp(context, 'Error loading people',
+                          Utils.getErrorMessage(e));
                     }
                   }
                 } else {
@@ -655,25 +632,27 @@ class _ScreenState extends State<Screen> {
                 try {
                   final stateContent = schedule.exportStateToString();
                   final bundledContent = _buildBundledSaveContent();
+                  final filename = defaultExportFilename('scheduling_state');
                   if (kIsWeb) {
                     await _withLoadingDialog('Saving...', () async {
-                      web_dl.triggerDownload(
-                          bundledContent, 'scheduling_state.txt');
+                      web_dl.triggerDownload(bundledContent, filename);
                     });
                   } else {
                     String? path = await FilePicker.platform.saveFile(
-                        type: FileType.custom, allowedExtensions: ['txt']);
+                        type: FileType.custom,
+                        allowedExtensions: ['txt'],
+                        fileName: filename);
                     if (path != null && path != '') {
                       schedule.exportText(path, bundledContent);
                     }
                   }
-                  autosave.saveHardSave(stateContent);
+                  autosave.saveHardSave(bundledContent);
                   autosave.clearAutosave();
                   _lastAutoSavedContent = stateContent;
                 } catch (e) {
                   if (context.mounted) {
-                    Utils.showPopUp(
-                        context, 'Error saving state', Utils.getErrorMessage(e));
+                    Utils.showPopUp(context, 'Error saving state',
+                        Utils.getErrorMessage(e));
                   }
                 }
               },
@@ -682,22 +661,29 @@ class _ScreenState extends State<Screen> {
               title: 'Save As',
               onPressed: () async {
                 try {
+                  final stateContent = schedule.exportStateToString();
                   final content = _buildBundledSaveContent();
+                  final filename = defaultExportFilename('scheduling_state');
                   if (kIsWeb) {
                     await _withLoadingDialog('Saving...', () async {
-                      await web_dl.triggerSaveAs(content, 'scheduling_state.txt');
+                      await web_dl.triggerSaveAs(content, filename);
                     });
                   } else {
                     String? path = await FilePicker.platform.saveFile(
-                        type: FileType.custom, allowedExtensions: ['txt']);
+                        type: FileType.custom,
+                        allowedExtensions: ['txt'],
+                        fileName: filename);
                     if (path != null && path != '') {
                       schedule.exportText(path, content);
                     }
                   }
+                  autosave.saveHardSave(content);
+                  autosave.clearAutosave();
+                  _lastAutoSavedContent = stateContent;
                 } catch (e) {
                   if (context.mounted) {
-                    Utils.showPopUp(
-                        context, 'Error saving state', Utils.getErrorMessage(e));
+                    Utils.showPopUp(context, 'Error saving state',
+                        Utils.getErrorMessage(e));
                   }
                 }
               },
@@ -723,8 +709,8 @@ class _ScreenState extends State<Screen> {
                     }, showSpinner: false);
                   } catch (e) {
                     if (context.mounted) {
-                      Utils.showPopUp(
-                          context, 'Error loading state', Utils.getErrorMessage(e));
+                      Utils.showPopUp(context, 'Error loading state',
+                          Utils.getErrorMessage(e));
                     }
                   }
                 }
@@ -735,16 +721,18 @@ class _ScreenState extends State<Screen> {
                 onPressed: () async {
                   try {
                     final content = schedule.outputRosterPhoneToString();
+                    final filename = defaultExportFilename('early_roster');
                     await exportTextFile(
                       isWeb: kIsWeb,
                       content: content,
-                      suggestedName: 'early_roster.txt',
+                      suggestedName: filename,
                       allowCustomNameOnWeb: true,
                       saveAs: web_dl.triggerSaveAs,
                       download: web_dl.triggerDownload,
                       pickSavePath: () => FilePicker.platform.saveFile(
                         type: FileType.custom,
                         allowedExtensions: ['txt'],
+                        fileName: filename,
                       ),
                       writeToPath: schedule.exportText,
                     );
@@ -760,16 +748,18 @@ class _ScreenState extends State<Screen> {
                 onPressed: () async {
                   try {
                     final content = schedule.outputRosterCCToString();
+                    final filename = defaultExportFilename('final_roster');
                     await exportTextFile(
                       isWeb: kIsWeb,
                       content: content,
-                      suggestedName: 'final_roster.txt',
+                      suggestedName: filename,
                       allowCustomNameOnWeb: true,
                       saveAs: web_dl.triggerSaveAs,
                       download: web_dl.triggerDownload,
                       pickSavePath: () => FilePicker.platform.saveFile(
                         type: FileType.custom,
                         allowedExtensions: ['txt'],
+                        fileName: filename,
                       ),
                       writeToPath: schedule.exportText,
                     );
@@ -785,16 +775,18 @@ class _ScreenState extends State<Screen> {
               onPressed: () async {
                 try {
                   final content = schedule.outputMMToString();
+                  final filename = defaultExportFilename('mail_merge');
                   await exportTextFile(
                     isWeb: kIsWeb,
                     content: content,
-                    suggestedName: 'mail_merge.txt',
+                    suggestedName: filename,
                     allowCustomNameOnWeb: true,
                     saveAs: web_dl.triggerSaveAs,
                     download: web_dl.triggerDownload,
                     pickSavePath: () => FilePicker.platform.saveFile(
                       type: FileType.custom,
                       allowedExtensions: ['txt'],
+                      fileName: filename,
                     ),
                     writeToPath: schedule.exportText,
                   );
@@ -811,16 +803,18 @@ class _ScreenState extends State<Screen> {
               onPressed: () async {
                 try {
                   final content = schedule.outputUnmetWantsToString();
+                  final filename = defaultExportFilename('unmet_wants');
                   await exportTextFile(
                     isWeb: kIsWeb,
                     content: content,
-                    suggestedName: 'unmet_wants.txt',
+                    suggestedName: filename,
                     allowCustomNameOnWeb: true,
                     saveAs: web_dl.triggerSaveAs,
                     download: web_dl.triggerDownload,
                     pickSavePath: () => FilePicker.platform.saveFile(
                       type: FileType.custom,
                       allowedExtensions: ['txt'],
+                      fileName: filename,
                     ),
                     writeToPath: schedule.exportText,
                   );
@@ -832,19 +826,6 @@ class _ScreenState extends State<Screen> {
                 }
               },
             ),
-          ]),
-          MenuItem(title: 'View', isActive: true, menuListItems: [
-            MenuListItem(title: 'View all'),
-            MenuListItem(title: 'close view'),
-            MenuListItem(title: 'jump to'),
-            MenuListItem(title: 'go to'),
-          ]),
-          MenuItem(title: 'Help', isActive: true, menuListItems: [
-            MenuListItem(title: 'Help'),
-            MenuListItem(title: 'About'),
-            MenuListItem(title: 'License'),
-            MenuListDivider(),
-            MenuListItem(title: 'Goodbye'),
           ]),
         ],
         masterPane: _masterPane(),
@@ -883,7 +864,8 @@ class _ScreenState extends State<Screen> {
                               .toList();
                           // Reset coordinator selection mode when switching courses
                           coordinatorMode = 'none';
-                          _classNameDisplayKey.currentState?.clearCoordinatorSelections();
+                          _classNameDisplayKey.currentState
+                              ?.clearCoordinatorSelections();
                           break;
                         case RowType.firstChoice:
                           curClassRoster = schedule.overviewData
@@ -1140,30 +1122,23 @@ class _ScreenState extends State<Screen> {
               ],
             ),
           ),
-          //Select process and Aux data
           SizedBox(
             width: MediaQuery.of(context).size.width / 4 - 5,
-            child: Column(
-              children: [
-                const SelectProcess(),
-                Expanded(
-                    child: OverviewData(
-                        placesAsked: placesAsked,
-                        placesGiven: placesGiven,
-                        goCourses: goCourses,
-                        unmetWants: unmetWants,
-                        onLeave: onLeave,
-                        courseTakers: courseTakers,
-                        onUnmetWantsClicked: () {
-                          setState(() {
-                            curClassRoster = schedule.overviewData
-                                .getPeopleUnmetWants()
-                                .toList();
-                            currentRow = RowType.unmetWants;
-                          });
-                        })),
-              ],
-            ),
+            child: OverviewData(
+                placesAsked: placesAsked,
+                placesGiven: placesGiven,
+                goCourses: goCourses,
+                unmetWants: unmetWants,
+                onLeave: onLeave,
+                courseTakers: courseTakers,
+                onUnmetWantsClicked: () {
+                  setState(() {
+                    curClassRoster = schedule.overviewData
+                        .getPeopleUnmetWants()
+                        .toList();
+                    currentRow = RowType.unmetWants;
+                  });
+                }),
           )
         ],
       ),

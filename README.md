@@ -6,6 +6,14 @@ A course scheduler for Omnilore.
 
 Developer documentation is available [here](https://andyliuhaowen.github.io/omnilore_documentation/).
 
+## User Notes
+
+- **Restarting the app:** on web, refresh the browser tab or close and reopen it; on desktop, close and reopen the app window.
+- **Save** on web uses the browser's normal download behavior, so the file usually lands in the browser's default downloads folder.
+- **Save As** on web uses the browser's save-file dialog when the browser supports it; otherwise it falls back to a normal download. Both Save and Save As produce a bundled file that includes your imported course data, people data, and scheduling state — so you can restore everything from that single file.
+- **Load** accepts a bundled scheduler save file and restores the imported course file, people file, and scheduling state together. Use a file previously saved with Save or Save As.
+- **Autosave** data is kept in the browser's local storage on web builds. It is not written out as a separate visible file unless you explicitly use Save or Save As. When you reopen or refresh the app, a dialog will offer to restore the last autosaved or manually saved session.
+
 ## Dev Environment Setup
 
 You need to install Flutter to further develop this program. Flutter installation guide is available [here](https://docs.flutter.dev/get-started/install).
