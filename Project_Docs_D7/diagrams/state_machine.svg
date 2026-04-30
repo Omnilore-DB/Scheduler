@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 320" font-family="Helvetica, Arial, sans-serif" font-size="13">
+  <style>
+    .state { fill: #f4f7fb; stroke: #2c3e50; stroke-width: 1.4; rx: 28; ry: 28; }
+    .terminal { fill: #e9f7ef; stroke: #1d6f42; stroke-width: 1.6; rx: 28; ry: 28; }
+    .branch { fill: #fff7e6; stroke: #b78103; stroke-width: 1.4; rx: 28; ry: 28; }
+    .lab { font-weight: 700; }
+    .small { font-size: 11px; fill: #34495e; }
+    .arrow { stroke: #2c3e50; stroke-width: 1.3; fill: none; marker-end: url(#a); }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2c3e50"/>
+    </marker>
+  </defs>
+  <text x="550" y="28" text-anchor="middle" font-weight="700" font-size="14">StateOfProcessing — pipeline guard rails</text>
+  <text x="550" y="46" text-anchor="middle" class="small">Each transition is gated by data validity; UI controls light up only when the state allows.</text>
+
+  <rect class="state" x="40"  y="120" width="140" height="60"/>
+  <text x="110" y="144" text-anchor="middle" class="lab">needCourses</text>
+  <text x="110" y="162" text-anchor="middle" class="small">awaiting course.txt</text>
+
+  <rect class="state" x="200" y="120" width="140" height="60"/>
+  <text x="270" y="144" text-anchor="middle" class="lab">needPeople</text>
+  <text x="270" y="162" text-anchor="middle" class="small">awaiting people.txt</text>
+
+  <rect class="branch" x="200" y="220" width="140" height="60"/>
+  <text x="270" y="244" text-anchor="middle" class="lab">inconsistent</text>
+  <text x="270" y="262" text-anchor="middle" class="small">people reference unknown course</text>
+
+  <rect class="state" x="380" y="120" width="120" height="60"/>
+  <text x="440" y="144" text-anchor="middle" class="lab">drop</text>
+  <text x="440" y="162" text-anchor="middle" class="small">undersize choices</text>
+
+  <rect class="state" x="540" y="120" width="120" height="60"/>
+  <text x="600" y="144" text-anchor="middle" class="lab">split</text>
+  <text x="600" y="162" text-anchor="middle" class="small">oversize → preview/commit</text>
+
+  <rect class="state" x="700" y="120" width="120" height="60"/>
+  <text x="760" y="144" text-anchor="middle" class="lab">schedule</text>
+  <text x="760" y="162" text-anchor="middle" class="small">20 time slots</text>
+
+  <rect class="state" x="860" y="120" width="120" height="60"/>
+  <text x="920" y="144" text-anchor="middle" class="lab">coordinator</text>
+  <text x="920" y="162" text-anchor="middle" class="small">C/CC or CC1/CC2</text>
+
+  <rect class="terminal" x="860" y="220" width="140" height="60"/>
+  <text x="930" y="244" text-anchor="middle" class="lab">output</text>
+  <text x="930" y="262" text-anchor="middle" class="small">all exports enabled</text>
+
+  <path class="arrow" d="M180,150 L200,150"/>
+  <path class="arrow" d="M340,150 L380,150"/>
+  <path class="arrow" d="M500,150 L540,150"/>
+  <path class="arrow" d="M660,150 L700,150"/>
+  <path class="arrow" d="M820,150 L860,150"/>
+  <path class="arrow" d="M270,180 L270,220"/>
+  <path class="arrow" d="M920,180 L930,220"/>
+</svg>
