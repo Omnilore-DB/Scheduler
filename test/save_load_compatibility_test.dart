@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:omnilore_scheduler/io/bundled_state.dart';
 import 'package:omnilore_scheduler/model/state_of_processing.dart';
 import 'package:omnilore_scheduler/scheduling.dart';
 
@@ -138,6 +139,39 @@ void main() {
     await restored.loadCoursesFromBytes(utf8.encode(courseText));
     await restored.loadPeopleFromBytes(utf8.encode(peopleText));
     restored.loadStateFromBytes(utf8.encode(bundled));
+
+    expect(restored.getNumPeople(), source.getNumPeople());
+    expect(restored.getCourseCodes().length, source.getCourseCodes().length);
+    expect(restored.getStateOfProcessing(), StateOfProcessing.output);
+    expect(restored.outputRosterCCToString(), isNotEmpty);
+    expect(restored.outputRosterPhoneToString(), isNotEmpty);
+    expect(restored.outputMMToString(), isNotEmpty);
+  });
+
+  test('Bundled save without source trailing newlines restores', () async {
+    final courseText = File('test/resources/course_split.txt')
+        .readAsStringSync()
+        .trimRight();
+    final peopleText = File('test/resources/people_schedule.txt')
+        .readAsStringSync()
+        .trimRight();
+
+    final source = Scheduling();
+    await source.loadCoursesFromBytes(utf8.encode(courseText));
+    await source.loadPeopleFromBytes(utf8.encode(peopleText));
+    await _driveToOutput(source);
+
+    final bundled = buildBundledStateContent(
+      stateContent: source.exportStateToString(),
+      courseData: courseText,
+      peopleData: peopleText,
+    );
+    final parsed = parseBundledStateContent(bundled);
+
+    final restored = Scheduling();
+    await restored.loadCoursesFromBytes(utf8.encode(parsed.courseData!));
+    await restored.loadPeopleFromBytes(utf8.encode(parsed.peopleData!));
+    restored.loadStateFromBytes(utf8.encode(parsed.stateContent));
 
     expect(restored.getNumPeople(), source.getNumPeople());
     expect(restored.getCourseCodes().length, source.getCourseCodes().length);

@@ -35,6 +35,17 @@ void main() {
       expect(result,
           'CourseFile:\ncourse line 1\ncourse line 2\nPeopleFile:\nperson1\nperson2\nSetting:\nsome state');
     });
+
+    test('adds section delimiters when source data has no trailing newline', () {
+      final result = buildBundledStateContent(
+        stateContent: 'Setting:\nsome state',
+        courseData: 'course line 1\ncourse line 2',
+        peopleData: 'person1\nperson2',
+      );
+
+      expect(result,
+          'CourseFile:\ncourse line 1\ncourse line 2\nPeopleFile:\nperson1\nperson2\nSetting:\nsome state');
+    });
   });
 
   group('parseBundledStateContent', () {
@@ -58,6 +69,18 @@ void main() {
       expect(parsed.courseData, courseData);
       expect(parsed.peopleData, peopleData);
       expect(parsed.stateContent, stateContent);
+      expect(parsed.hasEmbeddedSourceData, isTrue);
+    });
+
+    test('parses older adjacent section markers without trailing newlines', () {
+      const bundled =
+          'CourseFile:\ncourse line 1\ncourse line 2PeopleFile:\nperson1\nperson2Setting:\nsome state\n';
+
+      final parsed = parseBundledStateContent(bundled);
+
+      expect(parsed.courseData, 'course line 1\ncourse line 2');
+      expect(parsed.peopleData, 'person1\nperson2');
+      expect(parsed.stateContent, 'Setting:\nsome state\n');
       expect(parsed.hasEmbeddedSourceData, isTrue);
     });
 
