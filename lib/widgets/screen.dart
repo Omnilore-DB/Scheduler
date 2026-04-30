@@ -402,6 +402,7 @@ class _ScreenState extends State<Screen> {
         autosave.savePeopleData(peopleData);
         numPeople = schedule.getNumPeople();
         await Future.delayed(Duration.zero); // yield for UI
+        if (!mounted) return;
 
         schedule.loadStateFromBytes(utf8.encode(parsed.stateContent));
         // Rebuild droppedList from actual state after loadStateFromBytes
