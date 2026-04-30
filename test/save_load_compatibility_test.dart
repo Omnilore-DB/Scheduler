@@ -7,6 +7,21 @@ import 'package:omnilore_scheduler/model/state_of_processing.dart';
 import 'package:omnilore_scheduler/scheduling.dart';
 
 Future<List<String>> _driveToOutput(Scheduling scheduling) async {
+  final goCourses = await _driveToCoordinator(scheduling);
+
+  for (var course in goCourses) {
+    final resultingClass =
+        scheduling.overviewData.getPeopleForResultingClass(course);
+    expect(resultingClass, isNotEmpty,
+        reason: 'Course $course should have at least one participant.');
+    scheduling.courseControl.setMainCoCoordinator(course, resultingClass.first);
+  }
+
+  expect(scheduling.getStateOfProcessing(), StateOfProcessing.output);
+  return goCourses;
+}
+
+Future<List<String>> _driveToCoordinator(Scheduling scheduling) async {
   scheduling.courseControl
       .setGlobalMinMaxClassSize(0, scheduling.getNumPeople());
 
@@ -19,16 +34,6 @@ Future<List<String>> _driveToOutput(Scheduling scheduling) async {
   }
 
   expect(scheduling.getStateOfProcessing(), StateOfProcessing.coordinator);
-
-  for (var course in goCourses) {
-    final resultingClass =
-        scheduling.overviewData.getPeopleForResultingClass(course);
-    expect(resultingClass, isNotEmpty,
-        reason: 'Course $course should have at least one participant.');
-    scheduling.courseControl.setMainCoCoordinator(course, resultingClass.first);
-  }
-
-  expect(scheduling.getStateOfProcessing(), StateOfProcessing.output);
   return goCourses;
 }
 
@@ -46,10 +51,8 @@ Future<List<String>> _driveToOutputWithEqualCoordinatorCourse(
           'Expected $targetCourse to have at least two people for equal coordinator coverage.');
 
   scheduling.courseControl.clearCoordinators(targetCourse);
-  scheduling.courseControl
-      .setEqualCoCoordinator(targetCourse, targetPeople[0]);
-  scheduling.courseControl
-      .setEqualCoCoordinator(targetCourse, targetPeople[1]);
+  scheduling.courseControl.setEqualCoCoordinator(targetCourse, targetPeople[0]);
+  scheduling.courseControl.setEqualCoCoordinator(targetCourse, targetPeople[1]);
 
   expect(scheduling.getStateOfProcessing(), StateOfProcessing.output);
   return goCourses;
@@ -57,6 +60,41 @@ Future<List<String>> _driveToOutputWithEqualCoordinatorCourse(
 
 String _normalize(String content) {
   return content.endsWith('\n') ? content : '$content\n';
+}
+
+String _toCrLf(String content) {
+  return _normalize(content).replaceAll('\n', '\r\n');
+}
+
+Future<Scheduling> _restoreBundledContent(
+  String content, {
+  String? fallbackCourseData,
+  String? fallbackPeopleData,
+}) async {
+  final parsed = parseBundledStateContent(content);
+  final courseData = parsed.courseData ?? fallbackCourseData;
+  final peopleData = parsed.peopleData ?? fallbackPeopleData;
+
+  expect(courseData, isNotNull,
+      reason: 'Restore needs embedded or fallback course source data.');
+  expect(peopleData, isNotNull,
+      reason: 'Restore needs embedded or fallback people source data.');
+
+  final restored = Scheduling();
+  await restored.loadCoursesFromBytes(utf8.encode(courseData!));
+  await restored.loadPeopleFromBytes(utf8.encode(peopleData!));
+  restored.loadStateFromBytes(utf8.encode(parsed.stateContent));
+  return restored;
+}
+
+void _expectOutputStateAndExportsMatch(Scheduling source, Scheduling restored) {
+  expect(restored.getNumPeople(), source.getNumPeople());
+  expect(restored.getCourseCodes().length, source.getCourseCodes().length);
+  expect(restored.getStateOfProcessing(), StateOfProcessing.output);
+  expect(restored.outputRosterCCToString(), source.outputRosterCCToString());
+  expect(
+      restored.outputRosterPhoneToString(), source.outputRosterPhoneToString());
+  expect(restored.outputMMToString(), source.outputMMToString());
 }
 
 void main() {
@@ -74,7 +112,7 @@ void main() {
 
     final stateContent = source.exportStateToString();
     final bundled =
-      'CourseFile:\n${courseText}PeopleFile:\n$peopleText$stateContent';
+        'CourseFile:\n${courseText}PeopleFile:\n$peopleText$stateContent';
 
     final restored = Scheduling();
     await restored.loadCoursesFromBytes(utf8.encode(courseText));
@@ -105,12 +143,16 @@ void main() {
 
     final legacyStateOnly = source.exportStateToString();
 
-    final restored = Scheduling();
-    await restored.loadCoursesFromBytes(utf8.encode(courseText));
-    await restored.loadPeopleFromBytes(utf8.encode(peopleText));
-    restored.loadStateFromBytes(utf8.encode(legacyStateOnly));
+    final restored = await _restoreBundledContent(
+      legacyStateOnly,
+      fallbackCourseData: courseText,
+      fallbackPeopleData: peopleText,
+    );
 
     expect(restored.getStateOfProcessing(), StateOfProcessing.output);
+    expect(restored.outputRosterCCToString(), isNotEmpty);
+    expect(restored.outputRosterPhoneToString(), isNotEmpty);
+    expect(restored.outputMMToString(), isNotEmpty);
     for (var course in goCourses) {
       expect(restored.scheduleControl.scheduledTimeFor(course),
           source.scheduleControl.scheduledTimeFor(course));
@@ -133,25 +175,16 @@ void main() {
     await _driveToOutput(source);
 
     final bundled =
-      'CourseFile:\n${courseText}PeopleFile:\n$peopleText${source.exportStateToString()}';
+        'CourseFile:\n${courseText}PeopleFile:\n$peopleText${source.exportStateToString()}';
 
-    final restored = Scheduling();
-    await restored.loadCoursesFromBytes(utf8.encode(courseText));
-    await restored.loadPeopleFromBytes(utf8.encode(peopleText));
-    restored.loadStateFromBytes(utf8.encode(bundled));
+    final restored = await _restoreBundledContent(bundled);
 
-    expect(restored.getNumPeople(), source.getNumPeople());
-    expect(restored.getCourseCodes().length, source.getCourseCodes().length);
-    expect(restored.getStateOfProcessing(), StateOfProcessing.output);
-    expect(restored.outputRosterCCToString(), isNotEmpty);
-    expect(restored.outputRosterPhoneToString(), isNotEmpty);
-    expect(restored.outputMMToString(), isNotEmpty);
+    _expectOutputStateAndExportsMatch(source, restored);
   });
 
   test('Bundled save without source trailing newlines restores', () async {
-    final courseText = File('test/resources/course_split.txt')
-        .readAsStringSync()
-        .trimRight();
+    final courseText =
+        File('test/resources/course_split.txt').readAsStringSync().trimRight();
     final peopleText = File('test/resources/people_schedule.txt')
         .readAsStringSync()
         .trimRight();
@@ -166,16 +199,91 @@ void main() {
       courseData: courseText,
       peopleData: peopleText,
     );
-    final parsed = parseBundledStateContent(bundled);
+    final restored = await _restoreBundledContent(bundled);
 
-    final restored = Scheduling();
-    await restored.loadCoursesFromBytes(utf8.encode(parsed.courseData!));
-    await restored.loadPeopleFromBytes(utf8.encode(parsed.peopleData!));
-    restored.loadStateFromBytes(utf8.encode(parsed.stateContent));
+    _expectOutputStateAndExportsMatch(source, restored);
+  });
 
-    expect(restored.getNumPeople(), source.getNumPeople());
-    expect(restored.getCourseCodes().length, source.getCourseCodes().length);
+  test('Older adjacent-marker bundled saves restore and export', () async {
+    final courseText =
+        File('test/resources/course_split.txt').readAsStringSync().trimRight();
+    final peopleText = File('test/resources/people_schedule.txt')
+        .readAsStringSync()
+        .trimRight();
+
+    final source = Scheduling();
+    await source.loadCoursesFromBytes(utf8.encode(courseText));
+    await source.loadPeopleFromBytes(utf8.encode(peopleText));
+    await _driveToOutput(source);
+
+    final legacyBundled =
+        'CourseFile:\n${courseText}PeopleFile:\n$peopleText${source.exportStateToString()}';
+
+    final restored = await _restoreBundledContent(legacyBundled);
+
+    _expectOutputStateAndExportsMatch(source, restored);
+  });
+
+  test('CRLF source text bundled saves restore and export', () async {
+    final courseText =
+        _toCrLf(File('test/resources/course_split.txt').readAsStringSync());
+    final peopleText =
+        _toCrLf(File('test/resources/people_schedule.txt').readAsStringSync());
+
+    final source = Scheduling();
+    await source.loadCoursesFromBytes(utf8.encode(courseText));
+    await source.loadPeopleFromBytes(utf8.encode(peopleText));
+    await _driveToOutput(source);
+
+    final bundled = buildBundledStateContent(
+      stateContent: source.exportStateToString(),
+      courseData: courseText,
+      peopleData: peopleText,
+    );
+
+    final restored = await _restoreBundledContent(bundled);
+
+    _expectOutputStateAndExportsMatch(source, restored);
+  });
+
+  test('Bundled coordinator-state restore can continue to final exports',
+      () async {
+    final courseText =
+        _normalize(File('test/resources/course_split.txt').readAsStringSync());
+    final peopleText = _normalize(
+        File('test/resources/people_schedule.txt').readAsStringSync());
+
+    final source = Scheduling();
+    await source.loadCoursesFromBytes(utf8.encode(courseText));
+    await source.loadPeopleFromBytes(utf8.encode(peopleText));
+    final goCourses = await _driveToCoordinator(source);
+
+    final bundled = buildBundledStateContent(
+      stateContent: source.exportStateToString(),
+      courseData: courseText,
+      peopleData: peopleText,
+    );
+
+    final restored = await _restoreBundledContent(bundled);
+
+    expect(restored.getStateOfProcessing(), StateOfProcessing.coordinator);
+    expect(restored.outputRosterPhoneToString(), isNotEmpty);
+    expect(restored.outputRosterCCToString(), isEmpty);
+    expect(restored.outputMMToString(), isEmpty);
+
+    for (var course in goCourses) {
+      final resultingClass =
+          restored.overviewData.getPeopleForResultingClass(course);
+      expect(resultingClass, isNotEmpty,
+          reason:
+              'Course $course should still have participants after restore.');
+      restored.courseControl.setMainCoCoordinator(course, resultingClass.first);
+    }
+
     expect(restored.getStateOfProcessing(), StateOfProcessing.output);
+    expect(restored.outputRosterCCToString(), isNotEmpty);
+    expect(restored.outputRosterPhoneToString(), isNotEmpty);
+    expect(restored.outputMMToString(), isNotEmpty);
   });
 
   test('Coordinator mode and names survive save/load round-trip', () async {
