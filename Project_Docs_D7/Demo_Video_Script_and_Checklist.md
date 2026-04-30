@@ -63,9 +63,9 @@ This is the bulk of the video. Walk steadily; let the screen speak.
 
 > "Let's run a full term."
 >
-> "I'll load courses first." *Click File → Load Courses → choose `course.txt`.* "The status indicator goes from `Need Courses` to `Need People`."
+> "I'll load courses first." *Click File → Import Course → choose `course.txt`.* "The status indicator goes from `Need Courses` to `Need People`."
 >
-> "Now people." *Load `people.txt`.* "The overview panel populates with first choices, backups, and unmet counts. Twenty-four courses, 267 members."
+> "Now people." *File → Import People → choose `people.txt`.* "The overview panel populates with first choices, backups, and unmet counts. Twenty-four courses, 267 members."
 >
 > "We've got at least one undersize class; I'll drop it." *Open the drop control on a flagged course; confirm.*
 >

@@ -72,7 +72,7 @@ open http://scheduler.omnilore.org
 | [`Setup_and_Deployment_Guide.md`](Setup_and_Deployment_Guide.md) | Prereqs, env vars, local run, build, CI, deploy walkthrough, smoke test, rollback. |
 | [`Operations_Runbook.md`](Operations_Runbook.md) | Monitoring, common incidents, backup/restore, key rotation, scaling, expirations. |
 | [`API_and_Data_Reference.md`](API_and_Data_Reference.md) | Input/output file formats, scheduler-state grammar, time-slot index map, localStorage keys, public Dart surface. |
-| [`Testing_and_QA_Summary.md`](Testing_and_QA_Summary.md) | What's tested (21 test files, 89 passing tests on the latest D7 verification run), how to run, manual QA script, known gaps. |
+| [`Testing_and_QA_Summary.md`](Testing_and_QA_Summary.md) | What's tested (21 test files, 90 passing tests on the latest D7 verification run), how to run, manual QA script, known gaps. |
 | [`Security_Privacy_Accessibility_UX_Notes.md`](Security_Privacy_Accessibility_UX_Notes.md) | Threat model, secrets handling, PII in exports, a11y/UX recommendations. |
 | [`Backlog_Known_Issues_Roadmap.md`](Backlog_Known_Issues_Roadmap.md) | Prioritized backlog (P0 handoff → P3 a11y), known issues. |
 | [`ChangeLog_and_Version_History.md`](ChangeLog_and_Version_History.md) | D1–D7 history, semantic-version-style entries, tagging. |

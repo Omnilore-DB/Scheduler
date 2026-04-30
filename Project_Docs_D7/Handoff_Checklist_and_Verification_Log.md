@@ -42,7 +42,8 @@ The team has run the following commands against the on-disk repository to confir
 | --- | --- | --- | --- |
 | 2026-04-29 | `./scripts/check_platform_gating.sh` | Pass | Platform gating import checks passed. |
 | 2026-04-29 | `flutter analyze` | Pass | No issues found. |
-| 2026-04-29 | `flutter test` | Pass | All 21 test files passed (89/89 tests on latest D7 verification against official `origin/main` commit `624c6c9`). |
+| 2026-04-29 | `flutter test` | Pass | All 21 test files passed (89/89 tests on D7 verification against official `origin/main` commit `624c6c9`, the pre-merge HEAD before PR #9 landed). |
+| 2026-04-30 | `flutter test` | Pass | All 21 test files passed (90/90 tests on the post-merge HEAD `8a38334` of `origin/main`; doc-only changes from PR #9 were a no-op for the test suite). |
 | 2026-04-29 | `flutter build web --release` | Pass | `build/web/` produced; non-blocking Flutter service-worker / Wasm advisories only. |
 | 2026-04-29 | Local static-server smoke test (`build/web` served on http://localhost:8080) | Pass | `index.html` returns 200 OK; pipeline runs end-to-end against `test/resources/`. |
 | 2026-04-29 | Live URL reachability — `curl -I http://scheduler.omnilore.org` | Pass | HTTP 200; Flutter runtime loads. |

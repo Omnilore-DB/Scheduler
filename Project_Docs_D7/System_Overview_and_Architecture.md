@@ -21,7 +21,7 @@ The previous (pre-2026) implementation was a Flutter desktop application that de
 ## 2. Features Delivered (D1 → D7)
 
 - **Browser-deployable build.** The same Dart codebase compiles for desktop and web. Conditional imports route file I/O, downloads, autosave, and window sizing to platform-appropriate implementations. A static check (`scripts/check_platform_gating.sh`) prevents `dart:io` and other desktop-only imports from leaking into shared code.
-- **Two-file load.** Tab-delimited course and people text files are parsed in-browser via `file_picker` and validated against fifteen-plus exception types defined in `lib/model/exceptions.dart`.
+- **Two-file load.** Tab-delimited course and people text files are parsed in-browser via `file_picker` and validated against the thirteen exception types defined in `lib/model/exceptions.dart`.
 - **Drop/Split/Schedule/Coordinator pipeline.** The original desktop pipeline is preserved end-to-end; oversize courses now expose a non-destructive **Show Splits preview** with manual rebalancing and explicit Cancel / Implement controls.
 - **Coordinator UX rebuild.** Both `Set C and CC` and `Set CC1 and CC2` now reset selection state on re-entry so admins can fully reassign coordinators; tapping a highlighted name on a coordinator-assigned course clears the assignment.
 - **Time-slot deselection.** Clicking the same slot a second time unschedules the course; downstream availability counts recompute.
@@ -32,25 +32,9 @@ The previous (pre-2026) implementation was a Flutter desktop application that de
 
 ## 3. Architecture
 
+The architecture splits cleanly into a UI layer, a single `Scheduling` facade, the pure-Dart compute and model modules behind it, conditionally-imported I/O abstractions, and a CI/CD path that builds the web target and pushes it to EC2.
+
 ![Architecture](diagrams/architecture.png)
-
-A high-level view of how the layers fit together:
-
-```mermaid
-flowchart TD
-    User["Omnilore admin (browser)"] --> UI["UI layer<br/>lib/widgets"]
-    UI --> Facade["Scheduling facade<br/>lib/scheduling.dart"]
-    Facade --> Compute["Compute modules<br/>lib/compute/*"]
-    Facade --> Stores["Stores<br/>lib/store/*"]
-    Facade --> Models["Models<br/>lib/model/*"]
-    UI --> IO["I/O abstractions<br/>lib/io · lib/platform · lib/window_sizing"]
-    IO --> Web["Browser: file_picker, showSaveFilePicker, localStorage"]
-    IO --> Desktop["Desktop: dart:io paths, desktop_window"]
-    GitHub["GitHub Actions"] --> CI["test.yml: gating + analyze + test"]
-    GitHub --> Deploy["deploy.yml: build web → SCP to EC2"]
-    Deploy --> EC2["AWS EC2<br/>/var/www/html"]
-    EC2 --> User
-```
 
 ### Layer responsibilities
 
@@ -77,22 +61,9 @@ export 'text_file_store_stub.dart'
 
 ## 4. Data Flow
 
-![Data flow](diagrams/data_flow.png)
+Two tab-delimited input files (3-column course offerings and 21-column member preferences) feed the `Scheduling` facade, which walks each course through the drop / split / schedule / coordinator pipeline and into one of four timestamped exports. The same facade also produces the bundled save (course file plus people file plus state grammar) that powers `Save As`, `Load`, and the browser autosave.
 
-```mermaid
-flowchart LR
-    Course["course.txt<br/>tab-delimited, 3 cols"] --> Stores
-    People["people.txt<br/>tab-delimited, 21 cols"] --> Stores
-    Stores --> Facade["Scheduling"]
-    Facade --> Drop["drop"] --> Split["split"] --> Sched["schedule"] --> Coord["coordinator"] --> Out["output"]
-    Out --> Early["early_roster_YYYY-MM-DD_HHMM.txt"]
-    Out --> Roster["final_roster_YYYY-MM-DD_HHMM.txt"]
-    Out --> MM["mail_merge_YYYY-MM-DD_HHMM.txt"]
-    Out --> Unmet["unmet_wants_YYYY-MM-DD_HHMM.txt"]
-    Facade --> Bundle["Bundled save:<br/>CourseFile + PeopleFile + Setting"]
-    Bundle --> Auto["Browser localStorage<br/>(autosave + hardsave)"]
-    Bundle --> File["User-saved .txt"]
-```
+![Data flow](diagrams/data_flow.png)
 
 ## 5. Pipeline State Machine
 
@@ -104,16 +75,16 @@ flowchart LR
 needCourses → needPeople → inconsistent | drop | split | schedule | coordinator → output
 ```
 
-| State | Entered when | UI hint |
-| --- | --- | --- |
-| `needCourses` | course store is empty | "Load courses." |
-| `needPeople` | course OK, people store is empty | "Load people." |
-| `inconsistent` | a person references an unknown course code | Inline error; admin must fix the input file. |
-| `drop` | at least one course is below its minimum class size | Drop / split-mode controls light up. |
-| `split` | at least one course is over its maximum size | Show Splits preview is required. |
-| `schedule` | all classes sized; some unscheduled | Twenty-slot table is live. |
-| `coordinator` | all scheduled; coordinators incomplete | C/CC and CC1/CC2 controls light up. |
-| `output` | everything assigned | All exports are unlocked. |
+| State | Entered when | UI status label (`stateDescriptions` in `screen.dart`) | What the UI gates on next |
+| --- | --- | --- | --- |
+| `needCourses` | course store is empty | "Need Courses" | Admin uses **File → Import Course**. |
+| `needPeople` | course OK, people store is empty | "Need People" | Admin uses **File → Import People**. |
+| `inconsistent` | a person references an unknown course code | "Inconsistent" | Admin must fix the input file (offending code is in the exception message). |
+| `drop` | at least one course is below its minimum class size | "Drop and Split" | Drop / split-mode controls light up on the affected rows. |
+| `split` | at least one course is over its maximum size | "Drop and Split" | Show Splits preview is required before commit. |
+| `schedule` | all classes sized; some unscheduled | "Schedule" | The twenty-slot table is live; click-to-assign / click-again-to-deselect. |
+| `coordinator` | all scheduled; coordinators incomplete | "Coordinator" | `Set C and CC` and `Set CC1 and CC2` controls light up. |
+| `output` | everything assigned | "Output" | All four exports are unlocked. |
 
 The pipeline is **monotonic forward** but reactive backward: dropping a course or rebalancing a split rewinds downstream stages and the UI greys out their controls until the upstream constraint is satisfied again.
 
@@ -183,7 +154,7 @@ lib/
   window_sizing/
     window_sizing.dart, window_sizing_desktop.dart, window_sizing_noop.dart
   theme.dart
-test/                             # 21 .dart test files, 89 passing tests (see Testing_and_QA_Summary.md)
+test/                             # 21 .dart test files, 90 passing tests (see Testing_and_QA_Summary.md)
 .github/workflows/
   test.yml                        # CI
   deploy.yml                      # build web → SCP to EC2

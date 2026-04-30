@@ -100,7 +100,7 @@ The grid below summarizes tests that were added or stabilized in each deliverabl
 ## 4. Numbers (as of last on-machine run)
 
 - **Test files:** 21 (+ `test_util.dart`).
-- **Tests passing:** 89/89 on the latest D7 verification run against official `origin/main` commit `624c6c9`.
+- **Tests passing:** 90/90 on the latest D7 verification run against official `origin/main` commit `8a38334` (the post-merge head after PR #9 landed).
 - **Static analysis:** 0 issues.
 - **Web release build:** passes with non-blocking advisories only (Flutter service-worker / Wasm notes).
 - **Coverage tooling:** not configured. Adding `flutter test --coverage` and an LCOV report is filed as P2 in the backlog.
@@ -110,8 +110,8 @@ The grid below summarizes tests that were added or stabilized in each deliverabl
 Use `test/resources/course.txt` and `test/resources/people.txt` unless the stakeholder provides current term data.
 
 1. Open http://scheduler.omnilore.org. Verify the home screen renders without console errors (`Cmd-Opt-J` in Chrome).
-2. **Load courses** → `course.txt`. State indicator becomes `needPeople`.
-3. **Load people** → `people.txt`. Overview/stats panel populates.
+2. **File → Import Course** → `course.txt`. State indicator becomes `needPeople`.
+3. **File → Import People** → `people.txt`. Overview/stats panel populates.
 4. Confirm at least one class is flagged as undersize and at least one as oversize. Otherwise, set a custom `min`/`max` to force one of each.
 5. Drop one undersize class. Choose `Limit` (cap-at-max) for one and `Split` (preview) for another oversize class.
 6. Open **Show Splits** for an oversize class. Move at least one person between preview groups. **Cancel** once. Re-enter, then **Implement**.

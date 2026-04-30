@@ -57,8 +57,8 @@ flutter run -d windows
 Use `test/resources/course.txt` and `test/resources/people.txt` (24 courses, 267 people).
 
 1. `flutter run -d chrome`
-2. **Load courses** → choose `course.txt`. The status indicator advances from `needCourses` to `needPeople`.
-3. **Load people** → choose `people.txt`. The overview/stat panel populates.
+2. **File → Import Course** → choose `course.txt`. The status indicator advances from `needCourses` to `needPeople`.
+3. **File → Import People** → choose `people.txt`. The overview/stat panel populates.
 4. Walk through the pipeline as the UI directs you:
    - Drop any course flagged as undersize, or change its min/max size.
    - For oversize courses, open **Show Splits**, optionally rebalance preview groups, and **Implement** or **Cancel**.
