@@ -44,6 +44,12 @@ The team has run the following commands against the on-disk repository to confir
 | 2026-04-29 | `flutter analyze` | Pass | No issues found. |
 | 2026-04-29 | `flutter test` | Pass | All 21 test files passed (89/89 tests on D7 verification against official `origin/main` commit `624c6c9`, the pre-merge HEAD before PR #9 landed). |
 | 2026-04-30 | `flutter test` | Pass | All 21 test files passed (90/90 tests on the post-merge HEAD `8a38334` of `origin/main`; doc-only changes from PR #9 were a no-op for the test suite). |
+| 2026-04-30 | `flutter analyze --no-pub` | Pass | No issues found (branch `codex/fix-state-load`, PR #11). |
+| 2026-04-30 | `flutter test --no-pub` | Pass | 98/98 tests passed on branch `codex/fix-state-load`. PR #11 added 8 tests covering bundled-state edge cases. |
+| 2026-04-30 | `flutter test --no-pub --platform chrome` (autosave + bundled + platform) | Pass | 16/16 + 3/3 Chrome web tests passed. |
+| 2026-04-30 | `flutter build web --release --no-pub` | Pass | `build/web/` produced; non-blocking advisories only. |
+| 2026-04-30 | `flutter build web --wasm --release --no-pub` | Pass | Wasm build succeeded. |
+| 2026-04-30 | GitHub Actions `Test` workflow on PR #11 | Pass | Completed successfully at 22:08 UTC. PR #11 is mergeable. |
 | 2026-04-29 | `flutter build web --release` | Pass | `build/web/` produced; non-blocking Flutter service-worker / Wasm advisories only. |
 | 2026-04-29 | Local static-server smoke test (`build/web` served on http://localhost:8080) | Pass | `index.html` returns 200 OK; pipeline runs end-to-end against `test/resources/`. |
 | 2026-04-29 | Live URL reachability — `curl -I http://scheduler.omnilore.org` | Pass | HTTP 200; Flutter runtime loads. |

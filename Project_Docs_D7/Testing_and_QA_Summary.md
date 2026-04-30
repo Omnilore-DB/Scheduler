@@ -52,8 +52,8 @@ The repository contains **21 Dart test files** plus one shared `test_util.dart` 
 | File | Covers |
 | --- | --- |
 | `import_export_test.dart` | `exportStateToString` / `loadState` round-trip, including all sections of the state grammar. |
-| `bundled_state_test.dart` | `buildBundledStateContent` / `parseBundledStateContent`: the `CourseFile:` + `PeopleFile:` + `Setting:` envelope, missing-marker errors, legacy state-only files. |
-| `save_load_compatibility_test.dart` | Backwards compatibility between bundled saves and legacy state-only saves; restore preserves drops, splits, schedule, coordinators. |
+| `bundled_state_test.dart` | `buildBundledStateContent` / `parseBundledStateContent`: the `CourseFile:` + `PeopleFile:` + `Setting:` envelope, missing-marker errors, legacy state-only files, no-trailing-newline edge cases, CRLF content, round-trip build→parse. |
+| `save_load_compatibility_test.dart` | Backwards compatibility between bundled saves and legacy state-only saves; restore preserves drops, splits, schedule, coordinators; no-trailing-newline sources; adjacent-marker legacy saves; CRLF sources; coordinator-state cross-instance restore. |
 | `autosave_store_web_test.dart` | Browser `localStorage` keys (`omnilore_autosave`, `omnilore_hardsave`, `*_time`, `omnilore_course_data`, `omnilore_people_data`); set/clear/timestamp behavior. |
 | `export_text_file_test.dart` | `exportTextFile()` helper: web `showSaveFilePicker` path, fallback download path, desktop `pickSavePath`/`writeToPath` path, cancel/empty-path no-op. |
 
@@ -100,7 +100,7 @@ The grid below summarizes tests that were added or stabilized in each deliverabl
 ## 4. Numbers (as of last on-machine run)
 
 - **Test files:** 21 (+ `test_util.dart`).
-- **Tests passing:** 90/90 on the latest D7 verification run against official `origin/main` commit `8a38334` (the post-merge head after PR #9 landed).
+- **Tests passing:** 98/98 on the latest verification run (branch `codex/fix-state-load`, 2026-04-30). The PR #11 post-D7 bundled-state fix expanded `bundled_state_test.dart` and `save_load_compatibility_test.dart`, adding 8 tests. D7 baseline was 90/90 at commit `8a38334`.
 - **Static analysis:** 0 issues.
 - **Web release build:** passes with non-blocking advisories only (Flutter service-worker / Wasm notes).
 - **Coverage tooling:** not configured. Adding `flutter test --coverage` and an LCOV report is filed as P2 in the backlog.

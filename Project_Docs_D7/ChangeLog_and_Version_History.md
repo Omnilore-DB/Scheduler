@@ -126,6 +126,15 @@ For program-level deviations (input encoding, splitting/dropping interplay, coor
 | (D6 baseline) | AWS deploy + filename consistency landed. |
 | `d7-final-handoff` *(target)* | D7 final | Tag once stakeholder approves. |
 
+### Post-D7 patch — Bundled state restore fix (2026-04-30, PR #11)
+
+- **Root cause fixed:** Bundled save files concatenated course data, people data, and state markers directly without guaranteed newline separation. If source files lacked a trailing newline, section markers were glued to the last data row, causing `FormatException: Saved file is missing the PeopleFile section.` on every subsequent restore.
+- **Symptoms resolved:** Stuck "Restoring session…" spinner; restored sessions that could not continue the workflow; empty TXT exports after restore.
+- **New module:** `lib/io/bundled_state.dart` — `buildBundledStateContent` / `parseBundledStateContent` centralises all bundled-format logic with explicit section delimiters and a legacy-file fallback for older saves.
+- **Restore flow corrected (`lib/widgets/screen.dart`):** `_restoreState` now parses the bundled format, resets the `Scheduling` instance, reloads embedded course/people data, and defers error dialogs until after the loading overlay closes.
+- **Test additions (8 new tests):** No-trailing-newline source round-trips; adjacent-marker legacy saves; CRLF content; coordinator-state cross-instance restore — all in `bundled_state_test.dart` and `save_load_compatibility_test.dart`.
+- **Suite at merge:** 21 test files, 98/98 passing. Static analysis clean. Web release and Wasm builds pass.
+
 ## How to write a new entry
 
 When a new feature lands post-handoff, append an entry under a new heading **dated and one-line-summarized**, in the same shape as the D4–D6 entries above. Keep the repository-root `CHANGES.md` for end-user-visible behavior changes; keep this file for project-level milestones.

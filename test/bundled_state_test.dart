@@ -35,6 +35,42 @@ void main() {
       expect(result,
           'CourseFile:\ncourse line 1\ncourse line 2\nPeopleFile:\nperson1\nperson2\nSetting:\nsome state');
     });
+
+    test('adds section delimiters when source data has no trailing newline',
+        () {
+      final result = buildBundledStateContent(
+        stateContent: 'Setting:\nsome state',
+        courseData: 'course line 1\ncourse line 2',
+        peopleData: 'person1\nperson2',
+      );
+
+      expect(result,
+          'CourseFile:\ncourse line 1\ncourse line 2\nPeopleFile:\nperson1\nperson2\nSetting:\nsome state');
+    });
+
+    test('keeps existing trailing newlines without adding blank rows', () {
+      final result = buildBundledStateContent(
+        stateContent: 'Setting:\nsome state',
+        courseData: 'course line 1\n',
+        peopleData: 'person1\n',
+      );
+
+      expect(result,
+          'CourseFile:\ncourse line 1\nPeopleFile:\nperson1\nSetting:\nsome state');
+    });
+
+    test('preserves CRLF source file text while separating sections', () {
+      final result = buildBundledStateContent(
+        stateContent: 'Setting:\nsome state\n',
+        courseData: 'course line 1\r\ncourse line 2\r\n',
+        peopleData: 'person1\r\nperson2\r\n',
+      );
+
+      final parsed = parseBundledStateContent(result);
+      expect(parsed.courseData, 'course line 1\r\ncourse line 2\r\n');
+      expect(parsed.peopleData, 'person1\r\nperson2\r\n');
+      expect(parsed.stateContent, 'Setting:\nsome state\n');
+    });
   });
 
   group('parseBundledStateContent', () {
@@ -51,7 +87,8 @@ void main() {
       const courseData = 'course line 1\ncourse line 2\n';
       const peopleData = 'person1\nperson2\n';
       const stateContent = 'Setting:\nsome state\n';
-      const bundled = 'CourseFile:\n${courseData}PeopleFile:\n$peopleData$stateContent';
+      const bundled =
+          'CourseFile:\n${courseData}PeopleFile:\n$peopleData$stateContent';
 
       final parsed = parseBundledStateContent(bundled);
 
@@ -59,6 +96,35 @@ void main() {
       expect(parsed.peopleData, peopleData);
       expect(parsed.stateContent, stateContent);
       expect(parsed.hasEmbeddedSourceData, isTrue);
+    });
+
+    test('parses older adjacent section markers without trailing newlines', () {
+      const bundled =
+          'CourseFile:\ncourse line 1\ncourse line 2PeopleFile:\nperson1\nperson2Setting:\nsome state\n';
+
+      final parsed = parseBundledStateContent(bundled);
+
+      expect(parsed.courseData, 'course line 1\ncourse line 2');
+      expect(parsed.peopleData, 'person1\nperson2');
+      expect(parsed.stateContent, 'Setting:\nsome state\n');
+      expect(parsed.hasEmbeddedSourceData, isTrue);
+    });
+
+    test('preserves marker-like text that is not a section delimiter', () {
+      const courseData = 'ABC\tPeopleFile: in a course title\n';
+      const peopleData = 'Doe\tJane\tSetting: in a note\n';
+      const stateContent = 'Setting:\nstate\n';
+      final bundled = buildBundledStateContent(
+        stateContent: stateContent,
+        courseData: courseData,
+        peopleData: peopleData,
+      );
+
+      final parsed = parseBundledStateContent(bundled);
+
+      expect(parsed.courseData, courseData);
+      expect(parsed.peopleData, peopleData);
+      expect(parsed.stateContent, stateContent);
     });
 
     test('round-trips through build then parse', () {
@@ -82,7 +148,13 @@ void main() {
       const badInput = 'CourseFile:\nsome course data\nSetting:\nstate';
       expect(
         () => parseBundledStateContent(badInput),
-        throwsA(isA<FormatException>()),
+        throwsA(
+          isA<FormatException>().having(
+            (error) => error.message,
+            'message',
+            'Saved file is missing the PeopleFile section.',
+          ),
+        ),
       );
     });
 
@@ -90,7 +162,13 @@ void main() {
       const badInput = 'CourseFile:\ncourse data\nPeopleFile:\npeople data\n';
       expect(
         () => parseBundledStateContent(badInput),
-        throwsA(isA<FormatException>()),
+        throwsA(
+          isA<FormatException>().having(
+            (error) => error.message,
+            'message',
+            'Saved file is missing the state section.',
+          ),
+        ),
       );
     });
 

@@ -371,42 +371,62 @@ class _ScreenState extends State<Screen> {
   }
 
   Future<void> _restoreState(String content) async {
+    String? cannotRestoreMessage;
+    Object? restoreError;
+
     await _withLoadingDialog('Restoring session...', () async {
       try {
-        var courseData = _courseSourceData ?? autosave.loadCourseData();
-        var peopleData = _peopleSourceData ?? autosave.loadPeopleData();
+        final parsed = parseBundledStateContent(content);
+        var courseData =
+            parsed.courseData ?? _courseSourceData ?? autosave.loadCourseData();
+        var peopleData =
+            parsed.peopleData ?? _peopleSourceData ?? autosave.loadPeopleData();
 
         if (courseData == null || peopleData == null) {
-          if (mounted) {
-            Utils.showPopUp(context, 'Cannot Restore',
-                'Saved course or people data not found. Please import courses and people manually.');
-          }
+          cannotRestoreMessage =
+              'Saved course or people data not found. Please import courses and people manually.';
           return;
         }
 
+        setState(() {
+          schedule = Scheduling();
+        });
         await schedule.loadCoursesFromBytes(utf8.encode(courseData));
+        _courseSourceData = courseData;
+        autosave.saveCourseData(courseData);
         numCourses = schedule.getCourseCodes().length;
         droppedList = List<bool>.filled(numCourses!, false, growable: true);
         await Future.delayed(Duration.zero); // yield for UI
         await schedule.loadPeopleFromBytes(utf8.encode(peopleData));
+        _peopleSourceData = peopleData;
+        autosave.savePeopleData(peopleData);
         numPeople = schedule.getNumPeople();
         await Future.delayed(Duration.zero); // yield for UI
+        if (!mounted) return;
 
-        schedule.loadStateFromBytes(content.codeUnits);
+        schedule.loadStateFromBytes(utf8.encode(parsed.stateContent));
         // Rebuild droppedList from actual state after loadStateFromBytes
         final restoredCourses = schedule.getCourseCodes().toList();
         final dropped = schedule.courseControl.getDropped();
         numCourses = restoredCourses.length;
         droppedList = List<bool>.generate(
             numCourses!, (i) => dropped.contains(restoredCourses[i]));
+        _lastAutoSavedContent = schedule.exportStateToString();
         compute(Change.course);
       } catch (e) {
-        if (mounted) {
-          Utils.showPopUp(
-              context, 'Error restoring state', Utils.getErrorMessage(e));
-        }
+        restoreError = e;
       }
     });
+
+    if (!mounted) return;
+    if (cannotRestoreMessage != null) {
+      Utils.showPopUp(context, 'Cannot Restore', cannotRestoreMessage!);
+    } else {
+      final error = restoreError;
+      if (error == null) return;
+      Utils.showPopUp(
+          context, 'Error restoring state', Utils.getErrorMessage(error));
+    }
   }
 
   String _formatTimestamp(String isoTimestamp) {

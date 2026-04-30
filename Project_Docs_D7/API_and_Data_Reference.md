@@ -103,9 +103,9 @@ A **Save** or **Save As** writes a single text file in this layout:
 
 ```text
 CourseFile:
-<verbatim contents of the loaded course.txt, including its trailing newline>
+<verbatim contents of the loaded course.txt, with a newline added if the source file omitted one>
 PeopleFile:
-<verbatim contents of the loaded people.txt, including its trailing newline>
+<verbatim contents of the loaded people.txt, with a newline added if the source file omitted one>
 Setting:
 <scheduler-state grammar — see §4>
 ```
@@ -113,12 +113,13 @@ Setting:
 **Parser invariants:**
 
 - The file *must* start with `CourseFile:\n`. If not, the parser treats the entire file as a legacy "state-only" file and the caller is expected to have course and people data already loaded.
-- The string `\nPeopleFile:\n` *must* appear after `CourseFile:`.
-- The string `\nSetting:\n` *must* appear after `PeopleFile:`. (`Setting:` is the first line of the state grammar.)
+- The current writer emits `PeopleFile:\n` on its own line after the course data.
+- The current writer emits `Setting:\n` on its own line after the people data. (`Setting:` is the first line of the state grammar.)
+- The parser also accepts legacy bundled saves where `PeopleFile:\n` or `Setting:\n` was accidentally glued to the previous data row because the source file lacked a trailing newline.
 
 A FormatException is thrown if those markers are missing.
 
-The bundled save preserves the exact bytes of the original course and people files, so a stakeholder can hand a single file to an admin and reproduce the entire session.
+The bundled save preserves the original tab-delimited course and people data, normalizing only the boundary newline needed to keep sections parseable, so a stakeholder can hand a single file to an admin and reproduce the entire session.
 
 ## 4. Scheduler-State Grammar (`Setting:` section)
 
