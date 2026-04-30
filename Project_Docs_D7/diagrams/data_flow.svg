@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 540" font-family="Helvetica, Arial, sans-serif" font-size="13">
+  <style>
+    .node { fill: #ffffff; stroke: #2c3e50; stroke-width: 1.2; rx: 8; ry: 8; }
+    .input  { fill: #eaf3ff; stroke: #1f4e79; }
+    .stage  { fill: #f4f7fb; stroke: #2c3e50; }
+    .output { fill: #e9f7ef; stroke: #1d6f42; }
+    .save   { fill: #fff7e6; stroke: #b78103; }
+    .title  { font-weight: 700; font-size: 14px; }
+    .small  { fill: #34495e; font-size: 12px; }
+    .arrow  { stroke: #2c3e50; stroke-width: 1.4; fill: none; marker-end: url(#a); }
+    .arrow-dash { stroke: #b78103; stroke-width: 1.4; fill: none; marker-end: url(#aw); stroke-dasharray: 5,4; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2c3e50"/>
+    </marker>
+    <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b78103"/>
+    </marker>
+  </defs>
+
+  <text x="600" y="28" text-anchor="middle" class="title">Omnilore Scheduler — Data Flow &amp; Pipeline</text>
+  <text x="600" y="46" text-anchor="middle" class="small">Inputs → StateOfProcessing pipeline → outputs · with bundled-state save / load</text>
+
+  <!-- Inputs -->
+  <rect class="node input" x="40"  y="120" width="160" height="60"/>
+  <text x="120" y="142" text-anchor="middle" class="title">course.txt</text>
+  <text x="120" y="162" text-anchor="middle" class="small">tab-delimited, 3 cols</text>
+
+  <rect class="node input" x="40"  y="220" width="160" height="60"/>
+  <text x="120" y="242" text-anchor="middle" class="title">people.txt</text>
+  <text x="120" y="262" text-anchor="middle" class="small">tab-delimited, 21 cols</text>
+
+  <!-- Loaders -->
+  <rect class="node stage" x="240" y="170" width="170" height="60"/>
+  <text x="325" y="192" text-anchor="middle" class="title">load + validate</text>
+  <text x="325" y="210" text-anchor="middle" class="small">store/courses · store/people</text>
+
+  <!-- Pipeline stages -->
+  <rect class="node stage" x="450" y="80"  width="160" height="50"/>
+  <text x="530" y="100" text-anchor="middle">needCourses</text>
+  <text x="530" y="118" text-anchor="middle" class="small">awaiting course file</text>
+
+  <rect class="node stage" x="450" y="140" width="160" height="50"/>
+  <text x="530" y="160" text-anchor="middle">needPeople</text>
+  <text x="530" y="178" text-anchor="middle" class="small">awaiting people file</text>
+
+  <rect class="node stage" x="450" y="200" width="160" height="50"/>
+  <text x="530" y="220" text-anchor="middle">drop</text>
+  <text x="530" y="238" text-anchor="middle" class="small">undersize handling</text>
+
+  <rect class="node stage" x="450" y="260" width="160" height="50"/>
+  <text x="530" y="280" text-anchor="middle">split</text>
+  <text x="530" y="298" text-anchor="middle" class="small">oversize → preview/commit</text>
+
+  <rect class="node stage" x="450" y="320" width="160" height="50"/>
+  <text x="530" y="340" text-anchor="middle">schedule</text>
+  <text x="530" y="358" text-anchor="middle" class="small">20 time slots</text>
+
+  <rect class="node stage" x="450" y="380" width="160" height="50"/>
+  <text x="530" y="400" text-anchor="middle">coordinator</text>
+  <text x="530" y="418" text-anchor="middle" class="small">C/CC or CC1/CC2</text>
+
+  <rect class="node stage" x="450" y="440" width="160" height="50"/>
+  <text x="530" y="460" text-anchor="middle">output</text>
+  <text x="530" y="478" text-anchor="middle" class="small">all exports unlocked</text>
+
+  <!-- Outputs -->
+  <rect class="node output" x="700" y="80"  width="220" height="50"/>
+  <text x="810" y="100" text-anchor="middle" class="title">early_roster.txt</text>
+  <text x="810" y="118" text-anchor="middle" class="small">outputRosterCC, pre-final naming</text>
+
+  <rect class="node output" x="700" y="150" width="220" height="50"/>
+  <text x="810" y="170" text-anchor="middle" class="title">final_roster.txt</text>
+  <text x="810" y="188" text-anchor="middle" class="small">C marked (C), co-coords (CC)</text>
+
+  <rect class="node output" x="700" y="220" width="220" height="50"/>
+  <text x="810" y="240" text-anchor="middle" class="title">phone_roster.txt</text>
+  <text x="810" y="258" text-anchor="middle" class="small">outputRosterPhone</text>
+
+  <rect class="node output" x="700" y="290" width="220" height="50"/>
+  <text x="810" y="310" text-anchor="middle" class="title">mail_merge.txt</text>
+  <text x="810" y="328" text-anchor="middle" class="small">tab-delimited, one row per person</text>
+
+  <rect class="node output" x="700" y="360" width="220" height="50"/>
+  <text x="810" y="380" text-anchor="middle" class="title">unmet_wants.txt</text>
+  <text x="810" y="398" text-anchor="middle" class="small">total unmet + per-person gaps</text>
+
+  <!-- Bundled save / load -->
+  <rect class="node save" x="970" y="120" width="200" height="160"/>
+  <text x="1070" y="146" text-anchor="middle" class="title">Bundled save file</text>
+  <text x="1070" y="168" text-anchor="middle" class="small">CourseFile:</text>
+  <text x="1070" y="184" text-anchor="middle" class="small">  &lt;course.txt&gt;</text>
+  <text x="1070" y="200" text-anchor="middle" class="small">PeopleFile:</text>
+  <text x="1070" y="216" text-anchor="middle" class="small">  &lt;people.txt&gt;</text>
+  <text x="1070" y="232" text-anchor="middle" class="small">Setting:</text>
+  <text x="1070" y="248" text-anchor="middle" class="small">  &lt;state grammar&gt;</text>
+  <text x="1070" y="270" text-anchor="middle" class="small">save · save-as · load</text>
+
+  <rect class="node save" x="970" y="320" width="200" height="80"/>
+  <text x="1070" y="346" text-anchor="middle" class="title">Browser localStorage</text>
+  <text x="1070" y="366" text-anchor="middle" class="small">omnilore_autosave</text>
+  <text x="1070" y="382" text-anchor="middle" class="small">omnilore_hardsave + timestamps</text>
+
+  <!-- Arrows -->
+  <path class="arrow" d="M200,150 L240,180"/>
+  <path class="arrow" d="M200,250 L240,220"/>
+
+  <path class="arrow" d="M410,180 L450,105"/>
+  <path class="arrow" d="M410,200 L450,165"/>
+  <path class="arrow" d="M410,210 L450,225"/>
+  <path class="arrow" d="M530,130 L530,140"/>
+  <path class="arrow" d="M530,190 L530,200"/>
+  <path class="arrow" d="M530,250 L530,260"/>
+  <path class="arrow" d="M530,310 L530,320"/>
+  <path class="arrow" d="M530,370 L530,380"/>
+  <path class="arrow" d="M530,430 L530,440"/>
+
+  <path class="arrow" d="M610,225 L700,105"/>
+  <path class="arrow" d="M610,465 L700,170"/>
+  <path class="arrow" d="M610,400 L700,245"/>
+  <path class="arrow" d="M610,465 L700,315"/>
+  <path class="arrow" d="M610,465 L700,385"/>
+
+  <path class="arrow-dash" d="M610,250 L970,200"/>
+  <path class="arrow-dash" d="M970,200 L600,250"/>
+  <path class="arrow-dash" d="M610,300 L970,360"/>
+</svg>

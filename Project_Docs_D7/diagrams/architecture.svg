@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 760" font-family="Helvetica, Arial, sans-serif" font-size="13">
+  <style>
+    .layer { fill: #f4f7fb; stroke: #2c3e50; stroke-width: 1.5; }
+    .box { fill: #ffffff; stroke: #2c3e50; stroke-width: 1.2; rx: 6; ry: 6; }
+    .ext { fill: #fff7e6; stroke: #b78103; stroke-width: 1.2; rx: 6; ry: 6; }
+    .ci  { fill: #e9f7ef; stroke: #1d6f42; stroke-width: 1.2; rx: 6; ry: 6; }
+    .title { font-weight: 700; font-size: 14px; }
+    .layer-label { font-weight: 700; font-size: 13px; fill: #2c3e50; }
+    .arrow { stroke: #2c3e50; stroke-width: 1.4; fill: none; marker-end: url(#arr); }
+    .label { fill: #34495e; font-size: 12px; }
+  </style>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2c3e50"/>
+    </marker>
+  </defs>
+
+  <text x="550" y="28" text-anchor="middle" class="title">Omnilore Scheduler — System Architecture</text>
+  <text x="550" y="46" text-anchor="middle" class="label">Flutter web/desktop client + GitHub Actions deploy to AWS EC2 static hosting</text>
+
+  <!-- User -->
+  <rect class="ext" x="40" y="80" width="180" height="50"/>
+  <text x="130" y="105" text-anchor="middle" class="title">Omnilore Admin</text>
+  <text x="130" y="122" text-anchor="middle" class="label">browser user</text>
+
+  <!-- UI Layer -->
+  <rect class="layer" x="260" y="70" width="800" height="120"/>
+  <text x="280" y="92" class="layer-label">UI Layer — lib/widgets</text>
+  <rect class="box" x="280" y="105" width="170" height="70"/>
+  <text x="365" y="128" text-anchor="middle">screen.dart</text>
+  <text x="365" y="146" text-anchor="middle" class="label">file menus, autosave</text>
+  <text x="365" y="161" text-anchor="middle" class="label">save / load / export</text>
+  <rect class="box" x="465" y="105" width="170" height="70"/>
+  <text x="550" y="128" text-anchor="middle">main_table.dart</text>
+  <text x="550" y="146" text-anchor="middle" class="label">overview, drop, split,</text>
+  <text x="550" y="161" text-anchor="middle" class="label">schedule rows</text>
+  <rect class="box" x="650" y="105" width="180" height="70"/>
+  <text x="740" y="128" text-anchor="middle">class_name_display.dart</text>
+  <text x="740" y="146" text-anchor="middle" class="label">course rows, coordinator</text>
+  <text x="740" y="161" text-anchor="middle" class="label">selection</text>
+  <rect class="box" x="845" y="105" width="200" height="70"/>
+  <text x="945" y="128" text-anchor="middle">class_size_control.dart</text>
+  <text x="945" y="146" text-anchor="middle" class="label">min/max class size,</text>
+  <text x="945" y="161" text-anchor="middle" class="label">global vs per-course</text>
+
+  <!-- Facade -->
+  <rect class="layer" x="260" y="210" width="800" height="80"/>
+  <text x="280" y="232" class="layer-label">Facade</text>
+  <rect class="box" x="380" y="225" width="560" height="55"/>
+  <text x="660" y="247" text-anchor="middle" class="title">lib/scheduling.dart — Scheduling</text>
+  <text x="660" y="266" text-anchor="middle" class="label">orchestrates compute modules, exports state, drives StateOfProcessing pipeline</text>
+
+  <!-- Compute -->
+  <rect class="layer" x="260" y="310" width="800" height="120"/>
+  <text x="280" y="332" class="layer-label">Compute Modules — lib/compute</text>
+  <rect class="box" x="280" y="345" width="145" height="70"/>
+  <text x="352" y="368" text-anchor="middle">overview_data.dart</text>
+  <text x="352" y="386" text-anchor="middle" class="label">placement &amp; stats,</text>
+  <text x="352" y="401" text-anchor="middle" class="label">unmet wants</text>
+  <rect class="box" x="435" y="345" width="145" height="70"/>
+  <text x="507" y="368" text-anchor="middle">course_control.dart</text>
+  <text x="507" y="386" text-anchor="middle" class="label">drop / split mode,</text>
+  <text x="507" y="401" text-anchor="middle" class="label">class size, coord</text>
+  <rect class="box" x="590" y="345" width="155" height="70"/>
+  <text x="667" y="368" text-anchor="middle">schedule_control.dart</text>
+  <text x="667" y="386" text-anchor="middle" class="label">20-slot time-slot</text>
+  <text x="667" y="401" text-anchor="middle" class="label">assignment &amp; deselect</text>
+  <rect class="box" x="755" y="345" width="145" height="70"/>
+  <text x="827" y="368" text-anchor="middle">split_control.dart</text>
+  <text x="827" y="386" text-anchor="middle" class="label">John Taber split,</text>
+  <text x="827" y="401" text-anchor="middle" class="label">preview &amp; commit</text>
+  <rect class="box" x="910" y="345" width="135" height="70"/>
+  <text x="977" y="368" text-anchor="middle">validate.dart</text>
+  <text x="977" y="386" text-anchor="middle" class="label">people vs course</text>
+  <text x="977" y="401" text-anchor="middle" class="label">consistency</text>
+
+  <!-- Stores -->
+  <rect class="layer" x="260" y="450" width="380" height="100"/>
+  <text x="280" y="472" class="layer-label">Stores — lib/store</text>
+  <rect class="box" x="280" y="485" width="160" height="55"/>
+  <text x="360" y="507" text-anchor="middle">courses.dart</text>
+  <text x="360" y="525" text-anchor="middle" class="label">tab-delimited parse</text>
+  <rect class="box" x="450" y="485" width="170" height="55"/>
+  <text x="535" y="507" text-anchor="middle">people.dart</text>
+  <text x="535" y="525" text-anchor="middle" class="label">21-column parse, 20-slot avail</text>
+
+  <!-- Models -->
+  <rect class="layer" x="660" y="450" width="400" height="100"/>
+  <text x="680" y="472" class="layer-label">Models — lib/model</text>
+  <rect class="box" x="680" y="485" width="370" height="55"/>
+  <text x="865" y="505" text-anchor="middle">Course · Person · Coordinators · ClassSize · SplitMode</text>
+  <text x="865" y="524" text-anchor="middle" class="label">StateOfProcessing · Change · 15+ exception types</text>
+
+  <!-- IO Layer -->
+  <rect class="layer" x="40" y="570" width="1020" height="125"/>
+  <text x="60" y="592" class="layer-label">IO &amp; Platform — lib/io · lib/platform · lib/window_sizing</text>
+  <rect class="box" x="60" y="605" width="220" height="75"/>
+  <text x="170" y="626" text-anchor="middle">text_file_store_factory.dart</text>
+  <text x="170" y="645" text-anchor="middle" class="label">conditional import:</text>
+  <text x="170" y="660" text-anchor="middle" class="label">io vs stub (web)</text>
+  <rect class="box" x="295" y="605" width="220" height="75"/>
+  <text x="405" y="626" text-anchor="middle">web_download_factory.dart</text>
+  <text x="405" y="645" text-anchor="middle" class="label">browser download /</text>
+  <text x="405" y="660" text-anchor="middle" class="label">showSaveFilePicker</text>
+  <rect class="box" x="530" y="605" width="220" height="75"/>
+  <text x="640" y="626" text-anchor="middle">autosave_store_factory.dart</text>
+  <text x="640" y="645" text-anchor="middle" class="label">localStorage on web,</text>
+  <text x="640" y="660" text-anchor="middle" class="label">no-op stub elsewhere</text>
+  <rect class="box" x="765" y="605" width="280" height="75"/>
+  <text x="905" y="626" text-anchor="middle">bundled_state.dart · export_text_file.dart</text>
+  <text x="905" y="645" text-anchor="middle" class="label">CourseFile / PeopleFile / Setting bundle,</text>
+  <text x="905" y="660" text-anchor="middle" class="label">unified save-as helper</text>
+
+  <!-- CI/CD -->
+  <rect class="ci" x="40" y="715" width="495" height="35"/>
+  <text x="287" y="738" text-anchor="middle">.github/workflows/test.yml — analyze + test on push/PR to main</text>
+  <rect class="ci" x="555" y="715" width="505" height="35"/>
+  <text x="807" y="738" text-anchor="middle">.github/workflows/deploy.yml — build web → SCP to /var/www/html on EC2</text>
+
+  <!-- Arrows -->
+  <path class="arrow" d="M220,105 L260,115"/>
+  <path class="arrow" d="M660,180 L660,225"/>
+  <path class="arrow" d="M660,280 L660,310"/>
+  <path class="arrow" d="M660,430 L500,485"/>
+  <path class="arrow" d="M660,430 L820,485"/>
+  <path class="arrow" d="M460,550 L350,605"/>
+  <path class="arrow" d="M540,550 L640,605"/>
+  <path class="arrow" d="M825,550 L905,605"/>
+  <path class="arrow" d="M280,705 L450,690"/>
+  <path class="arrow" d="M790,705 L905,690"/>
+</svg>

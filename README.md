@@ -6,6 +6,14 @@ A course scheduler for Omnilore.
 
 Developer documentation is available [here](https://andyliuhaowen.github.io/omnilore_documentation/).
 
+## Deliverable 7 Handoff
+
+The current web-migration handoff package lives in
+[`Project_Docs_D7/README_QuickStart.md`](Project_Docs_D7/README_QuickStart.md).
+It includes the setup/deploy guide, operations runbook, API and data reference,
+testing summary, security notes, backlog, changelog, handoff checklist, and
+stakeholder cover note.
+
 ## User Notes
 
 - **Restarting the app:** on web, refresh the browser tab or close and reopen it; on desktop, close and reopen the app window.
