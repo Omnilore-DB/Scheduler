@@ -20,7 +20,7 @@ This manifest enumerates everything that ships with Deliverable 7. Use it as the
 | `Setup_and_Deployment_Guide.md` | Prereqs, env vars explained, local run, build, CI, deploy walkthrough, smoke test, rollback. |
 | `Operations_Runbook.md` | Monitoring, common incidents, backup/restore, key rotation, scaling, expirations, recovery checklist. |
 | `API_and_Data_Reference.md` | Input/output file formats, scheduler-state grammar, time-slot index reference, browser localStorage keys, public Dart surface. |
-| `Testing_and_QA_Summary.md` | What's tested (21 files, 89 passing tests on the latest D7 verification run), how to run, manual QA script, known gaps. |
+| `Testing_and_QA_Summary.md` | What's tested (21 files, 90 passing tests on the latest D7 verification run), how to run, manual QA script, known gaps. |
 | `Security_Privacy_Accessibility_UX_Notes.md` | Threat model, secrets handling, PII in exports, a11y/UX recommendations. |
 | `Backlog_Known_Issues_Roadmap.md` | Prioritized backlog (P0 handoff → P3 a11y) and known issues. |
 | `ChangeLog_and_Version_History.md` | D1–D7 history; how to tag the final release. |
@@ -29,23 +29,27 @@ This manifest enumerates everything that ships with Deliverable 7. Use it as the
 | `Handoff_Package_Manifest.md` | This file. |
 | `Stakeholder_Email_Cover_Note.md` | Cover email template for the stakeholder + cc'd mentor. |
 
-### Rendered PDFs (one per Markdown doc that the spec calls out as `.pdf`)
+### Rendered DOCX + PDF (one of each per Markdown doc)
 
-| File | Source |
-| --- | --- |
-| `System_Overview_and_Architecture.pdf` | from the corresponding `.md` |
-| `Setup_and_Deployment_Guide.pdf` | from the corresponding `.md` |
-| `Operations_Runbook.pdf` | from the corresponding `.md` |
-| `API_and_Data_Reference.pdf` | from the corresponding `.md` |
-| `Testing_and_QA_Summary.pdf` | from the corresponding `.md` |
-| `Security_Privacy_Accessibility_UX_Notes.pdf` | from the corresponding `.md` |
-| `Backlog_Known_Issues_Roadmap.pdf` | from the corresponding `.md` |
-| `Demo_Video_Script_and_Checklist.pdf` | from the corresponding `.md` |
-| `Handoff_Checklist_and_Verification_Log.pdf` | from the corresponding `.md` |
-| `Handoff_Package_Manifest.pdf` | from the corresponding `.md` |
-| `Stakeholder_Email_Cover_Note.pdf` | from the corresponding `.md` |
+Markdown is the source of truth. Each `.md` file is rendered to `.docx` via Pandoc and then to `.pdf` via LibreOffice (so the PDF reflects the same Word formatting). The render pipeline lives at `scripts/render_d7_docs.sh`.
 
-`README_QuickStart.md`, `.env.example`, and `ChangeLog_and_Version_History.md` are markdown-only per the spec's filename guidance.
+| Doc (base name) | Markdown | Word | PDF |
+| --- | --- | --- | --- |
+| `README_QuickStart` | yes | yes | yes |
+| `System_Overview_and_Architecture` | yes | yes | yes |
+| `Setup_and_Deployment_Guide` | yes | yes | yes |
+| `Operations_Runbook` | yes | yes | yes |
+| `API_and_Data_Reference` | yes | yes | yes |
+| `Testing_and_QA_Summary` | yes | yes | yes |
+| `Security_Privacy_Accessibility_UX_Notes` | yes | yes | yes |
+| `Backlog_Known_Issues_Roadmap` | yes | yes | yes |
+| `ChangeLog_and_Version_History` | yes | yes | yes |
+| `Demo_Video_Script_and_Checklist` | yes | yes | yes |
+| `Handoff_Checklist_and_Verification_Log` | yes | yes | yes |
+| `Handoff_Package_Manifest` | yes | yes | yes |
+| `Stakeholder_Email_Cover_Note` | yes | yes | yes |
+
+`.env.example` is a config template, not a document, and ships only as a plain text file.
 
 ### Diagrams
 
@@ -65,7 +69,7 @@ This manifest enumerates everything that ships with Deliverable 7. Use it as the
 
 | Path | Notes |
 | --- | --- |
-| `lib/` | Application code (~6,500 Dart LOC across compute/model/store/io/widgets). |
+| `lib/` | Application code (~5,800 Dart LOC across compute/model/store/io/widgets). |
 | `test/` | 21 Dart test files (+ `test_util.dart`). Canonical fixtures in `test/resources/`. |
 | `.github/workflows/test.yml` | CI: gating + analyze + test on PR/push to `main`. |
 | `.github/workflows/deploy.yml` | CD: builds web → SCP to `/var/www/html` on EC2. |

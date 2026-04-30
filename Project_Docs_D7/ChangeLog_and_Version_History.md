@@ -104,7 +104,7 @@ The README, the manifest, and this changelog should reference `d7-final-handoff`
 - **Live URL** confirmed: http://scheduler.omnilore.org.
 - **Demo video** scripted (recording is the remaining D7 work).
 - **Final tag** `d7-final-handoff` to be created after stakeholder sign-off.
-- **D7 docs reconciliation**: handoff documentation aligned with official `origin/main` commit `624c6c9`; test count updated to 21 files / 89 passing tests; timestamped export filenames and current export menu behavior documented.
+- **D7 docs reconciliation**: handoff documentation aligned with official `origin/main` (initial alignment at commit `624c6c9`; reconciled after PR #9 merged at `8a38334`); test count updated to 21 files / 90 passing tests; timestamped export filenames and current export menu behavior documented.
 - Outstanding handoff items (ownership transfer, key rotation, monitoring) listed in `Backlog_Known_Issues_Roadmap.md` §P0 / §P1.
 
 ## Behavior changes vs. the previous desktop application
