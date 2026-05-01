@@ -1,6 +1,6 @@
 # Handoff Checklist and Verification Log
 
-**Status date:** April 29, 2026
+**Status date:** May 1, 2026
 **Project:** Omnilore Scheduler (CSCI 401 Team 34)
 **Live URL:** http://scheduler.omnilore.org
 **Repository:** https://github.com/Omnilore-DB/Scheduler
@@ -11,8 +11,8 @@ This is the final sign-off worksheet. Replace any `Pending` entries before Brigh
 
 | # | Item | Status | Evidence / Owner |
 | --- | --- | --- | --- |
-| 1 | Stakeholder owns everything (GitHub, cloud accounts, services) | Pending | Stakeholder must confirm Owner/Admin on `Omnilore-DB/Scheduler` and on the AWS account that owns the EC2 host and `AWS_SG_ID`. |
-| 2 | Logins handed over safely (passwords/keys + 2FA/recovery to stakeholder) | Pending | Use stakeholder-approved secure channel; never email or chat. Operations Runbook §6 documents the rotation procedure. |
+| 1 | Stakeholder owns everything (GitHub, cloud accounts, services) | Done | Stakeholder (Al Ortiz) owns the `Omnilore-DB/Scheduler` GitHub org and the AWS account/EC2 instance. Team 34 operated as IAM contributors throughout the project. No ownership transfer required. |
+| 2 | Logins handed over safely (passwords/keys + 2FA/recovery to stakeholder) | Done | Stakeholder already holds the AWS credentials and EC2 SSH key. Team had contributor-level IAM access only; no team-held secrets require transfer. |
 | 3 | Config template included (`.env.example`) | Done | `Project_Docs_D7/.env.example` enumerates all seven required GitHub Actions secrets. |
 | 4 | Instructions proven to work (someone outside the build team followed them) | Pending | Stakeholder or mentor follows `Setup_and_Deployment_Guide.md` from a clean machine; sign here once a clean build/run is confirmed. |
 | 5 | Live site works (basic smoke test) | Done (team) / Pending (stakeholder) | Team has confirmed http://scheduler.omnilore.org loads and the pipeline runs end-to-end. Stakeholder must repeat per `Testing_and_QA_Summary.md` §5. |
@@ -20,18 +20,18 @@ This is the final sign-off worksheet. Replace any `Pending` entries before Brigh
 | 7 | Quick API/data guide present | Done | `API_and_Data_Reference.md`. |
 | 8 | How to run tests + gaps documented | Done | `Testing_and_QA_Summary.md`. |
 | 9 | To-do list with priorities | Done | `Backlog_Known_Issues_Roadmap.md`. |
-| 10 | Changes documented + final tag | Pending | Changelog (`ChangeLog_and_Version_History.md`) is current. Final tag `d7-final-handoff` to be created after stakeholder approves — instructions in the changelog. |
-| 11 | Demo video saved and linked | Pending | Script: `Demo_Video_Script_and_Checklist.md`. Save as `Team34_Omnilore_Scheduler_D7_Demo.mp4` in this folder; link from `README_QuickStart.md`. |
-| 12 | Expiry dates noted | Pending | Operations Runbook §10 — stakeholder fills in IAM/SSH/domain/TLS dates. |
-| 13 | Stakeholder sign-off | Pending | Email cover note: `Stakeholder_Email_Cover_Note.md`. Request approval within 48–72 hours. |
+| 10 | Changes documented + final tag | In progress | Changelog is current through today. Tag `d7-final-handoff` will be created once the stakeholder approves the submission — intentionally deferred so the tag marks the accepted version, not the submission draft. Instructions in `ChangeLog_and_Version_History.md`. |
+| 11 | Demo video saved and linked | Done | Recorded as `CSCI401_Group34_OmniloreScheduler.mp4` (179.6 MB). Stored in Google Drive: Deliverable 7 Bundle → 2. Final Demo Video. Link: https://drive.google.com/file/d/1jJAOYWAU2sVAE-M_Qk-BILUE1GebL-Ze/view?usp=drive_link |
+| 12 | Expiry dates noted | N/A — stakeholder managed | AWS infrastructure (IAM keys, EC2 SSH key, security group, domain, TLS cert) is owned and managed by the stakeholder org. Expiry tracking is the stakeholder's responsibility; no team-held credentials require rotation. |
+| 13 | Stakeholder sign-off | Pending | Approval requested 2026-05-01. Class submission deadline is 2026-05-04 (Sunday midnight); stakeholder approval window extends a few days beyond that. Email cover note template: `Stakeholder_Email_Cover_Note.md`. |
 
 ### Quality self-check (per spec)
 
 | Check | Result |
 | --- | --- |
 | Can a new dev clone, configure, run, deploy, and troubleshoot with only your docs? | Yes — README_QuickStart → Setup_and_Deployment_Guide → Operations_Runbook is the canonical path. |
-| Are 'secrets' safely transferred and in stakeholder control? | Pending until §1, §2 above are signed off and AWS keys + EC2 SSH key are rotated to stakeholder-issued values. |
-| Does the video clearly show value and current capability? | Pending — script is ready, recording is the next step. |
+| Are 'secrets' safely transferred and in stakeholder control? | Yes — stakeholder owns the AWS account and already holds all credentials. Team held contributor IAM access only; nothing to transfer. |
+| Does the video clearly show value and current capability? | Yes — recorded and uploaded to Google Drive (see item 11). |
 | Are known issues and next steps honest and prioritized? | Yes — see `Backlog_Known_Issues_Roadmap.md`. |
 
 ## Verification Log
@@ -60,9 +60,9 @@ The team has run the following commands against the on-disk repository to confir
 
 ## Sign-off
 
-**Stakeholder representative:** _Pending — please print name, role, date_
+**Stakeholder representative:** _Pending — awaiting stakeholder reply (approval requested 2026-05-01)_
 
-**Date received:** _Pending_
+**Date received:** _Pending — stakeholder approval window open through ~2026-05-06_
 
 **Approval notes or requested edits:** _Pending_
 
