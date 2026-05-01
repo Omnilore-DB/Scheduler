@@ -89,7 +89,7 @@ The grid below summarizes tests that were added or stabilized in each deliverabl
 | Web-safe file loading via byte streams | D3/D4 | Stable; both desktop and web paths covered. |
 | Browser file picker + downloads | D4 | Stable; `export_text_file_test.dart` covers all four web/desktop branches. |
 | Save / load intermediate state | D4 | Stable; covered by `import_export_test.dart` and `save_load_compatibility_test.dart`. |
-| Bundled state (CourseFile + PeopleFile + Setting) | D4/D5 | Stable; covered by `bundled_state_test.dart`. |
+| Bundled state (CourseFile + PeopleFile + Setting) | D4/D5 | Stable; covered by `bundled_state_test.dart`. Legacy-autosave recovery (CourseFile without PeopleFile) covered by trial-run patch `70889a9`. |
 | Autosave / hardsave in `localStorage` | D4 | Stable; `autosave_store_web_test.dart`. |
 | Coordinator workflow (`Set C and CC`, `Set CC1 and CC2`, equal export labels) | D4/D5 | Stable; `coordinator_widget_test.dart`, `class_name_display_coordinator_mode_test.dart`, integration. |
 | Recomputation after scheduling/drop changes | D5 | Stable; `schedule_unavailability_update_test.dart`. |
@@ -100,7 +100,7 @@ The grid below summarizes tests that were added or stabilized in each deliverabl
 ## 4. Numbers (as of last on-machine run)
 
 - **Test files:** 21 (+ `test_util.dart`).
-- **Tests passing:** 98/98 on the latest verification run (branch `codex/fix-state-load`, 2026-04-30). The PR #11 post-D7 bundled-state fix expanded `bundled_state_test.dart` and `save_load_compatibility_test.dart`, adding 8 tests. D7 baseline was 90/90 at commit `8a38334`.
+- **Tests passing:** 99/99 on the latest verification run (branch `codex/fix-state-load`, commit `70889a9`, 2026-04-30). The PR #11 post-D7 bundled-state fix added 8 tests (98/98); a subsequent trial-run patch added 1 more for the legacy-autosave recovery path (99/99). D7 baseline was 90/90 at commit `8a38334`.
 - **Static analysis:** 0 issues.
 - **Web release build:** passes with non-blocking advisories only (Flutter service-worker / Wasm notes).
 - **Coverage tooling:** not configured. Adding `flutter test --coverage` and an LCOV report is filed as P2 in the backlog.
@@ -133,7 +133,7 @@ These are explicit gaps, not unknowns:
 
 | Gap | Why | Mitigation / next step |
 | --- | --- | --- |
-| Stakeholder-data live smoke test | Final stakeholder data isn't checked in (privacy) | Run the manual script on the deployed URL with stakeholder data once available. Filed P0 in backlog. |
+| Stakeholder-data live smoke test | A full trial run was performed on 2026-04-30 with live stakeholder data; two bugs found and fixed (commit `70889a9`). | Re-run against the deployed URL after `codex/fix-state-load` merges to `main`. |
 | Demo video | Not yet recorded | Use `Demo_Video_Script_and_Checklist.md`. Filed P0. |
 | Code coverage report | Not configured | Add `flutter test --coverage` + LCOV upload. P2. |
 | Cross-browser save-dialog matrix | `showSaveFilePicker` support varies | Manual matrix across Chrome/Edge/Safari/Firefox at next QA cycle. P2. |

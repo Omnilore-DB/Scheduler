@@ -135,6 +135,15 @@ For program-level deviations (input encoding, splitting/dropping interplay, coor
 - **Test additions (8 new tests):** No-trailing-newline source round-trips; adjacent-marker legacy saves; CRLF content; coordinator-state cross-instance restore — all in `bundled_state_test.dart` and `save_load_compatibility_test.dart`.
 - **Suite at merge:** 21 test files, 98/98 passing. Static analysis clean. Web release and Wasm builds pass.
 
+### Post-D7 patch — Trial-run bug fixes (2026-04-30, commit `70889a9`)
+
+Discovered during a full trial run with live stakeholder data (`scheduling_state_2026-04-30_1601.txt`, 152-person / 25-course term).
+
+- **Bug 1 — Legacy autosave format caused FormatException on restore.** The autosave stored in browser `localStorage` by an older app version contained a `CourseFile:` section header but no `PeopleFile:` section header. `parseBundledStateContent` treated the missing `PeopleFile:` as always-fatal, throwing `FormatException: Saved file is missing the PeopleFile section.` on every open of the app. Fix: when `PeopleFile:` is absent but `Setting:` is present, recover gracefully — return the embedded course data with `peopleData = null` so `hasEmbeddedSourceData` is false and the caller falls back to autosave / in-memory people data. Only when both `PeopleFile:` and `Setting:` are absent is the error truly unrecoverable and the exception still thrown.
+- **Bug 2 — `_scheduled` set not cleared on course change blocked coordinator-stage progression.** `ScheduleControl.compute(Change.course)` cleared the `_schedule` list (time-slot assignments) but not the `_scheduled` set (membership). After a course split, stale course codes remained in `_scheduled`, so `allClassScheduled()` returned incorrect results and the UI would not advance from the schedule stage to the coordinator stage. Fix: added `_scheduled.clear()` alongside the existing `_schedule[i].clear()` loop.
+- **Test additions (1 new test):** `bundled_state_test.dart` — "recovers from legacy saves that have CourseFile but no PeopleFile section"; the existing "throws FormatException when PeopleFile section is missing" test was renamed and updated to cover the only-CourseFile-no-Setting unrecoverable case.
+- **Suite after fix:** 21 test files, 99/99 passing.
+
 ## How to write a new entry
 
 When a new feature lands post-handoff, append an entry under a new heading **dated and one-line-summarized**, in the same shape as the D4–D6 entries above. Keep the repository-root `CHANGES.md` for end-user-visible behavior changes; keep this file for project-level milestones.
