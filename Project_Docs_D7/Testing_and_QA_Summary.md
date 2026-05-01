@@ -12,7 +12,7 @@ From the repository root:
 flutter pub get
 ./scripts/check_platform_gating.sh   # platform-import gate (fast)
 flutter analyze                       # static analysis (lints + unused, etc.)
-flutter test                          # 21 test files (excluding test_util.dart)
+flutter test                          # 23 test files (excluding test_util.dart)
 flutter build web --release           # production build sanity check
 ```
 
@@ -26,7 +26,7 @@ flutter test test/integration_workflow_test.dart
 
 ## 2. Test inventory
 
-The repository contains **21 Dart test files** plus one shared `test_util.dart` helper, organized by what they exercise:
+The repository contains **23 Dart test files** plus one shared `test_util.dart` helper, organized by what they exercise:
 
 ### Parsing and stores
 
@@ -46,6 +46,7 @@ The repository contains **21 Dart test files** plus one shared `test_util.dart` 
 | `overview_data_test.dart` | First choices, backups, drops, resulting class membership, unmet-wants summary math. |
 | `scheduling_test.dart` | The `Scheduling` facade end-to-end: state transitions, `compute(Change)` propagation, output-state gating. |
 | `schedule_unavailability_update_test.dart` | Recomputation of class-size & availability counts after scheduling and drop events (the D5 fix). |
+| `schedule_control_sync_test.dart` | Bug 2 regression (trial-run 2026-04-30): `ScheduleControl._scheduled` is now cleared on `Change.course`. 25 tests covering: `allClassScheduled()` / `scheduledTimeFor()` / `isScheduledAt()` state after `Change.course`; preservation under other Change types; partial-schedule invariants; `noCompute: true` path; real split path via 2015-split fixture. |
 
 ### Save / load / persistence
 
@@ -53,6 +54,7 @@ The repository contains **21 Dart test files** plus one shared `test_util.dart` 
 | --- | --- |
 | `import_export_test.dart` | `exportStateToString` / `loadState` round-trip, including all sections of the state grammar. |
 | `bundled_state_test.dart` | `buildBundledStateContent` / `parseBundledStateContent`: the `CourseFile:` + `PeopleFile:` + `Setting:` envelope, missing-marker errors, legacy state-only files, no-trailing-newline edge cases, CRLF content, round-trip build→parse. |
+| `bundled_state_legacy_test.dart` | Bug 1 regression (trial-run 2026-04-30): legacy autosave with `CourseFile:` but no `PeopleFile:` now recovers gracefully. 27 tests across four groups: core recovery path, unrecoverable cases (still throw), full-format regression, `buildBundledStateContent` edge cases. |
 | `save_load_compatibility_test.dart` | Backwards compatibility between bundled saves and legacy state-only saves; restore preserves drops, splits, schedule, coordinators; no-trailing-newline sources; adjacent-marker legacy saves; CRLF sources; coordinator-state cross-instance restore. |
 | `autosave_store_web_test.dart` | Browser `localStorage` keys (`omnilore_autosave`, `omnilore_hardsave`, `*_time`, `omnilore_course_data`, `omnilore_people_data`); set/clear/timestamp behavior. |
 | `export_text_file_test.dart` | `exportTextFile()` helper: web `showSaveFilePicker` path, fallback download path, desktop `pickSavePath`/`writeToPath` path, cancel/empty-path no-op. |
@@ -99,8 +101,8 @@ The grid below summarizes tests that were added or stabilized in each deliverabl
 
 ## 4. Numbers (as of last on-machine run)
 
-- **Test files:** 21 (+ `test_util.dart`).
-- **Tests passing:** 99/99 on the latest verification run (branch `codex/fix-state-load`, commit `70889a9`, 2026-04-30). The PR #11 post-D7 bundled-state fix added 8 tests (98/98); a subsequent trial-run patch added 1 more for the legacy-autosave recovery path (99/99). D7 baseline was 90/90 at commit `8a38334`.
+- **Test files:** 23 (+ `test_util.dart`).
+- **Tests passing:** 148/148 on the latest verification run (branch `codex/fix-state-load`, 2026-04-30). Two new test files added as part of the trial-run bug-fix verification: `bundled_state_legacy_test.dart` (27 tests, Bug 1) and `schedule_control_sync_test.dart` (25 tests, Bug 2) raised the count from 99 to 148. Prior history: PR #11 post-D7 bundled-state fix → 98/98; trial-run patch → 99/99; D7 baseline was 90/90 at commit `8a38334`.
 - **Static analysis:** 0 issues.
 - **Web release build:** passes with non-blocking advisories only (Flutter service-worker / Wasm notes).
 - **Coverage tooling:** not configured. Adding `flutter test --coverage` and an LCOV report is filed as P2 in the backlog.
