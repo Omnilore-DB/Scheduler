@@ -1,3 +1,6 @@
+// Uses dart:io for fixture file reads — VM-only.
+@TestOn('vm')
+
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
