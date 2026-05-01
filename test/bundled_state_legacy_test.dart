@@ -119,7 +119,7 @@ void main() {
     test('recovery result can be re-bundled with people data and round-trip', () {
       const courseData = 'ABC\tCourse A\nDEF\tCourse B\n';
       const stateContent = 'Setting:\nMin: 8\n';
-      final legacyInput = 'CourseFile:\n${courseData}$stateContent';
+      const legacyInput = 'CourseFile:\n$courseData$stateContent';
 
       // Simulate what the caller does after recovery: supply missing people
       // from autosave / in-memory and re-bundle.
