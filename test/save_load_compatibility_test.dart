@@ -1,3 +1,6 @@
+// Uses dart:io for fixture file reads — VM-only.
+@TestOn('vm')
+
 import 'dart:convert';
 import 'dart:io';
 

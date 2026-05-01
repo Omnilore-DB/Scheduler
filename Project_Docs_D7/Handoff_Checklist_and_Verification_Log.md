@@ -46,6 +46,8 @@ The team has run the following commands against the on-disk repository to confir
 | 2026-04-30 | `flutter test` | Pass | All 21 test files passed (90/90 tests on the post-merge HEAD `8a38334` of `origin/main`; doc-only changes from PR #9 were a no-op for the test suite). |
 | 2026-04-30 | `flutter analyze --no-pub` | Pass | No issues found (branch `codex/fix-state-load`, PR #11). |
 | 2026-04-30 | `flutter test --no-pub` | Pass | 98/98 tests passed on branch `codex/fix-state-load`. PR #11 added 8 tests covering bundled-state edge cases. |
+| 2026-04-30 | `flutter test --no-pub` | Pass | 99/99 tests passed on branch `codex/fix-state-load`, commit `70889a9`. Trial-run patch added 1 test (legacy-autosave recovery) and fixed 2 bugs found during full live-data run. |
+| 2026-04-30 | `flutter test --no-pub` | Pass | 148/148 tests passed on branch `codex/fix-state-load`. Two new test files (`bundled_state_legacy_test.dart`, `schedule_control_sync_test.dart`) added 49 tests providing exhaustive regression coverage for both trial-run bugs. |
 | 2026-04-30 | `flutter test --no-pub --platform chrome` (autosave + bundled + platform) | Pass | 16/16 + 3/3 Chrome web tests passed. |
 | 2026-04-30 | `flutter build web --release --no-pub` | Pass | `build/web/` produced; non-blocking advisories only. |
 | 2026-04-30 | `flutter build web --wasm --release --no-pub` | Pass | Wasm build succeeded. |
