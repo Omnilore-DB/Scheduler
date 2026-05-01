@@ -454,20 +454,32 @@ class _ScreenState extends State<Screen> {
     final text = utf8.decode(bytes);
     final parsed = parseBundledStateContent(text);
 
-    if (parsed.hasEmbeddedSourceData) {
-      final courseText = parsed.courseData!;
-      final peopleText = parsed.peopleData!;
+    // Resolve course and people source text: prefer embedded, then fall back to
+    // what is already in memory or the autosave store (handles legacy saves that
+    // embedded only the course section but not the people section).
+    final resolvedCourseText =
+        parsed.courseData ?? _courseSourceData ?? autosave.loadCourseData();
+    final resolvedPeopleText =
+        parsed.peopleData ?? _peopleSourceData ?? autosave.loadPeopleData();
+
+    if (resolvedCourseText != null && resolvedPeopleText != null) {
       setState(() {
         schedule = Scheduling();
       });
-      await schedule.loadCoursesFromBytes(utf8.encode(courseText));
-      _courseSourceData = courseText;
-      autosave.saveCourseData(courseText);
+      await schedule.loadCoursesFromBytes(utf8.encode(resolvedCourseText));
+      _courseSourceData = resolvedCourseText;
+      autosave.saveCourseData(resolvedCourseText);
       await Future.delayed(Duration.zero);
-      await schedule.loadPeopleFromBytes(utf8.encode(peopleText));
-      _peopleSourceData = peopleText;
-      autosave.savePeopleData(peopleText);
+      await schedule.loadPeopleFromBytes(utf8.encode(resolvedPeopleText));
+      _peopleSourceData = resolvedPeopleText;
+      autosave.savePeopleData(resolvedPeopleText);
       await Future.delayed(Duration.zero);
+    } else if (!parsed.hasEmbeddedSourceData) {
+      // Legacy state-only file: apply state on top of the already-loaded data.
+    } else {
+      throw StateError(
+          'Cannot restore: course or people data is missing. '
+          'Please import courses and people manually.');
     }
 
     schedule.loadStateFromBytes(utf8.encode(parsed.stateContent));

@@ -144,8 +144,26 @@ void main() {
       expect(parsed.stateContent, stateContent);
     });
 
-    test('throws FormatException when PeopleFile section is missing', () {
+    test(
+        'recovers from legacy saves that have CourseFile but no PeopleFile section',
+        () {
+      // Older app versions could produce saves with a CourseFile header but no
+      // PeopleFile header.  The parser should degrade gracefully: embed the
+      // course data and leave peopleData null so the caller can source it from
+      // autosave or memory.
       const badInput = 'CourseFile:\nsome course data\nSetting:\nstate';
+      final parsed = parseBundledStateContent(badInput);
+
+      expect(parsed.courseData, 'some course data\n');
+      expect(parsed.peopleData, isNull);
+      expect(parsed.stateContent, 'Setting:\nstate');
+      expect(parsed.hasEmbeddedSourceData, isFalse);
+    });
+
+    test('throws FormatException when both PeopleFile and state section are missing',
+        () {
+      // No PeopleFile and no Setting: unrecoverable.
+      const badInput = 'CourseFile:\nsome course data only';
       expect(
         () => parseBundledStateContent(badInput),
         throwsA(

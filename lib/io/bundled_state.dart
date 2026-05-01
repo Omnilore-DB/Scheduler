@@ -37,8 +37,19 @@ BundledStateContent parseBundledStateContent(String content) {
   final peopleMarkerIndex =
       _findSectionMarker(content, peopleMarker, courseMarker.length);
   if (peopleMarkerIndex == -1) {
-    throw const FormatException(
-        'Saved file is missing the PeopleFile section.');
+    // Legacy format: CourseFile section present but no PeopleFile section.
+    // Try to recover by locating the state section directly so the embedded
+    // course data can still be surfaced; people data must come from autosave.
+    final stateMarkerIndex =
+        _findSectionMarker(content, stateMarker, courseMarker.length);
+    if (stateMarkerIndex == -1) {
+      throw const FormatException(
+          'Saved file is missing the PeopleFile section.');
+    }
+    return BundledStateContent(
+      courseData: content.substring(courseMarker.length, stateMarkerIndex),
+      stateContent: content.substring(stateMarkerIndex),
+    );
   }
 
   final stateMarkerIndex = _findSectionMarker(

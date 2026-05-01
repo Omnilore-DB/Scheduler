@@ -26,11 +26,14 @@ class ScheduleControl {
 
   /// Update internal states in response to changes
   void compute(Change change) {
-    // If courses have changed, clear all scheduled times
+    // If courses have changed, clear all scheduled times and the membership set
+    // so the two stay in sync (stale entries in _scheduled would cause
+    // allClassScheduled() to return a wrong result after a split).
     if (change == Change.course) {
       for (var i = 0; i < _schedule.length; i++) {
         _schedule[i].clear();
       }
+      _scheduled.clear();
     }
     // Recompute unavailability matrix whenever resulting rosters may change.
     // Resulting rosters are affected by course/people/drop/schedule changes.
